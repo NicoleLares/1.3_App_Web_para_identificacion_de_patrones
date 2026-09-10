@@ -10,20 +10,44 @@ from openai import OpenAI
 
 
 # ==========================================
-# CONFIGURACIÓN
+# CONFIGURACIÓN CORS
 # ==========================================
 
-ALLOWED_ORIGIN = os.environ.get(
+# Tu GitHub Pages
+DEFAULT_ORIGIN = "https://nicolelares.github.io"
+
+
+# Orígenes permitidos
+ALLOWED_ORIGINS = {
+    DEFAULT_ORIGIN,
+
+    # También permitimos pruebas locales
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+}
+
+
+# Si existe ALLOWED_ORIGIN en Vercel,
+# también se agrega automáticamente.
+configured_origins = os.environ.get(
     "ALLOWED_ORIGIN",
     ""
-).rstrip("/")
+)
 
 
-# ==========================================
-# TAMAÑO MÁXIMO DE LA PETICIÓN
-# ==========================================
+for configured_origin in configured_origins.split(","):
 
-MAX_BODY_BYTES = 3_500_000
+    configured_origin = (
+        configured_origin
+        .strip()
+        .rstrip("/")
+    )
+
+    if configured_origin:
+
+        ALLOWED_ORIGINS.add(
+            configured_origin
+        )
 
 
 # ==========================================
@@ -34,10 +58,42 @@ MODEL = "gpt-5.6-luna"
 
 
 # ==========================================
+# TAMAÑO MÁXIMO DE LA PETICIÓN
+# ==========================================
+
+MAX_BODY_BYTES = 3_500_000
+
+
+# ==========================================
 # HANDLER PRINCIPAL
 # ==========================================
 
 class handler(BaseHTTPRequestHandler):
+
+
+    # ======================================
+    # OBTENER ORIGEN
+    # ======================================
+
+    def get_request_origin(self):
+
+        return self.headers.get(
+            "Origin",
+            ""
+        ).rstrip("/")
+
+
+    # ======================================
+    # VALIDAR ORIGEN
+    # ======================================
+
+    def origin_is_allowed(self):
+
+        origin = self.get_request_origin()
+
+        return (
+            origin in ALLOWED_ORIGINS
+        )
 
 
     # ======================================
@@ -46,16 +102,10 @@ class handler(BaseHTTPRequestHandler):
 
     def add_cors_headers(self):
 
-        origin = self.headers.get(
-            "Origin",
-            ""
-        )
+        origin = self.get_request_origin()
 
-        if (
-            ALLOWED_ORIGIN
-            and
-            origin == ALLOWED_ORIGIN
-        ):
+
+        if origin in ALLOWED_ORIGINS:
 
             self.send_header(
                 "Access-Control-Allow-Origin",
@@ -69,24 +119,7 @@ class handler(BaseHTTPRequestHandler):
 
 
     # ======================================
-    # VALIDAR ORIGEN
-    # ======================================
-
-    def origin_is_allowed(self):
-
-        if not ALLOWED_ORIGIN:
-            return True
-
-        origin = self.headers.get(
-            "Origin",
-            ""
-        )
-
-        return origin == ALLOWED_ORIGIN
-
-
-    # ======================================
-    # ENVIAR RESPUESTA JSON
+    # RESPUESTA JSON
     # ======================================
 
     def send_json(
@@ -102,25 +135,29 @@ class handler(BaseHTTPRequestHandler):
             "utf-8"
         )
 
+
         self.send_response(
             status_code
         )
+
 
         self.send_header(
             "Content-Type",
             "application/json; charset=utf-8"
         )
 
+
         self.add_cors_headers()
+
 
         self.send_header(
             "Content-Length",
-            str(
-                len(body)
-            )
+            str(len(body))
         )
 
+
         self.end_headers()
+
 
         self.wfile.write(
             body
@@ -129,11 +166,15 @@ class handler(BaseHTTPRequestHandler):
 
     # ======================================
     # OPTIONS
+    # PREFLIGHT DE CORS
     # ======================================
 
     def do_OPTIONS(self):
 
-        if not self.origin_is_allowed():
+        origin = self.get_request_origin()
+
+
+        if origin not in ALLOWED_ORIGINS:
 
             self.send_response(
                 403
@@ -143,26 +184,41 @@ class handler(BaseHTTPRequestHandler):
 
             return
 
+
         self.send_response(
             204
         )
 
-        self.add_cors_headers()
+
+        self.send_header(
+            "Access-Control-Allow-Origin",
+            origin
+        )
+
 
         self.send_header(
             "Access-Control-Allow-Methods",
             "POST, OPTIONS"
         )
 
+
         self.send_header(
             "Access-Control-Allow-Headers",
             "Content-Type"
         )
 
+
         self.send_header(
             "Access-Control-Max-Age",
             "86400"
         )
+
+
+        self.send_header(
+            "Vary",
+            "Origin"
+        )
+
 
         self.end_headers()
 
@@ -208,7 +264,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # LEER CONTENT-LENGTH
+            # CONTENT LENGTH
             # ==================================
 
             try:
@@ -234,7 +290,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # VALIDAR TAMAÑO
+            # VALIDAR PETICIÓN
             # ==================================
 
             if content_length <= 0:
@@ -273,7 +329,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # CONVERTIR A JSON
+            # CONVERTIR BODY A JSON
             # ==================================
 
             try:
@@ -313,7 +369,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # IMAGEN BASE64
+            # IMAGEN SUBIDA
             # ==================================
 
             image = str(
@@ -325,7 +381,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # URL DE IMAGEN
+            # URL DE INTERNET
             # ==================================
 
             image_url = str(
@@ -366,7 +422,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # VALIDAR QUE EXISTA IMAGEN
+            # VALIDAR FUENTE DE IMAGEN
             # ==================================
 
             if (
@@ -388,27 +444,23 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # FUENTE QUE SE ENVIARÁ A OPENAI
+            # FUENTE FINAL PARA OPENAI
             # ==================================
 
             image_source = None
 
 
             # ==================================
-            # OPCIÓN 1:
-            # IMAGEN SUBIDA EN BASE64
+            # OPCIÓN 1
+            # IMAGEN BASE64
             # ==================================
 
             if image:
 
                 valid_prefixes = (
-
                     "data:image/jpeg;base64,",
-
                     "data:image/png;base64,",
-
                     "data:image/webp;base64,"
-
                 )
 
 
@@ -439,10 +491,12 @@ class handler(BaseHTTPRequestHandler):
                         1
                     )[1]
 
+
                     base64.b64decode(
                         base64_data,
                         validate=True
                     )
+
 
                 except (
                     IndexError,
@@ -466,8 +520,8 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # OPCIÓN 2:
-            # IMAGEN MEDIANTE URL
+            # OPCIÓN 2
+            # URL DE INTERNET
             # ==================================
 
             else:
@@ -521,7 +575,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # CLIENTE DE OPENAI
+            # CLIENTE OPENAI
             # ==================================
 
             client = OpenAI(
@@ -530,148 +584,388 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # INSTRUCCIONES PARA LA IA
+            # INSTRUCCIONES
             # ==================================
 
             instructions = """
 Eres un sistema especializado en análisis visual
-e identificación de patrones.
+e identificación de patrones dentro de imágenes.
 
-Analiza únicamente la imagen proporcionada.
+Analiza únicamente la información visible en la imagen.
 
-Devuelve SOLAMENTE un objeto JSON válido.
+Debes realizar las siguientes tareas:
 
-No utilices Markdown.
-No utilices bloques de código.
-No escribas texto antes ni después del JSON.
+1. Dar una descripción general breve de la imagen.
 
-La respuesta debe tener exactamente esta estructura:
+2. Identificar patrones visuales relevantes como:
+   - elementos repetidos,
+   - colores predominantes,
+   - formas similares,
+   - agrupaciones,
+   - distribuciones,
+   - simetrías,
+   - estructuras visuales.
 
-{
-    "descripcion": "string",
+3. Detectar la presencia de personas.
 
-    "patrones": [
-        "string"
-    ],
+4. Para cada persona describe únicamente
+   características visibles y apropiadas como:
+   - vestimenta,
+   - postura,
+   - actividad,
+   - ubicación aproximada.
 
-    "personas": [
-        {
-            "descripcion": "string",
-            "ubicacion": "string",
-            "actividad": "string"
-        }
-    ],
+5. No identifiques ni intentes proporcionar
+   la identidad de personas reales.
 
-    "objetos": [
-        {
-            "nombre": "string",
-            "cantidad": 1,
-            "ubicacion": "string"
-        }
-    ],
+6. No infieras atributos sensibles de las personas.
 
-    "texto_visible": [
-        "string"
-    ]
-}
+7. Identifica los principales objetos visibles.
 
-REGLAS:
+8. Agrupa objetos iguales cuando sea razonable.
 
-1. Describe brevemente la escena.
+9. Indica una cantidad aproximada de cada objeto.
 
-2. Identifica patrones visuales relevantes como:
-   elementos repetidos,
-   colores predominantes,
-   formas,
-   distribuciones,
-   agrupaciones,
-   simetrías
-   o estructuras visuales.
+10. Indica la ubicación aproximada utilizando:
+    - izquierda,
+    - derecha,
+    - centro,
+    - parte superior,
+    - parte inferior.
 
-3. Detecta si existen personas.
+11. Detecta texto solamente cuando sea
+    claramente legible.
 
-4. Para las personas describe únicamente:
-   vestimenta,
-   postura,
-   actividad
-   y ubicación aproximada.
+12. No inventes información que no sea visible.
 
-5. No intentes identificar el nombre
-   o identidad de personas reales.
-
-6. No infieras atributos sensibles.
-
-7. Identifica los principales objetos.
-
-8. Agrupa objetos iguales cuando sea posible.
-
-9. La cantidad de objetos debe ser
-   un número entero positivo.
-
-10. Usa ubicaciones aproximadas como:
-    izquierda,
-    derecha,
-    centro,
-    parte superior
-    o parte inferior.
-
-11. Detecta texto solamente cuando
-    sea claramente legible.
-
-12. Si una categoría no tiene resultados,
-    devuelve un arreglo vacío [].
-
-13. No inventes información.
+13. Si existe incertidumbre, utiliza una descripción
+    prudente.
 
 14. Responde siempre en español.
 """
 
 
             # ==================================
-            # PETICIÓN A OPENAI
+            # ESQUEMA JSON
+            # ==================================
+
+            response_schema = {
+
+                "type":
+                    "object",
+
+
+                "properties": {
+
+
+                    # ==========================
+                    # DESCRIPCIÓN
+                    # ==========================
+
+                    "descripcion": {
+
+                        "type":
+                            "string"
+
+                    },
+
+
+                    # ==========================
+                    # PATRONES
+                    # ==========================
+
+                    "patrones": {
+
+                        "type":
+                            "array",
+
+                        "items": {
+
+                            "type":
+                                "string"
+
+                        }
+
+                    },
+
+
+                    # ==========================
+                    # PERSONAS
+                    # ==========================
+
+                    "personas": {
+
+                        "type":
+                            "array",
+
+                        "items": {
+
+                            "type":
+                                "object",
+
+
+                            "properties": {
+
+
+                                "descripcion": {
+
+                                    "type":
+                                        "string"
+
+                                },
+
+
+                                "ubicacion": {
+
+                                    "type":
+                                        "string"
+
+                                },
+
+
+                                "actividad": {
+
+                                    "type":
+                                        "string"
+
+                                }
+
+                            },
+
+
+                            "required": [
+
+                                "descripcion",
+
+                                "ubicacion",
+
+                                "actividad"
+
+                            ],
+
+
+                            "additionalProperties":
+                                False
+
+                        }
+
+                    },
+
+
+                    # ==========================
+                    # OBJETOS
+                    # ==========================
+
+                    "objetos": {
+
+                        "type":
+                            "array",
+
+                        "items": {
+
+                            "type":
+                                "object",
+
+
+                            "properties": {
+
+
+                                "nombre": {
+
+                                    "type":
+                                        "string"
+
+                                },
+
+
+                                "cantidad": {
+
+                                    "type":
+                                        "integer"
+
+                                },
+
+
+                                "ubicacion": {
+
+                                    "type":
+                                        "string"
+
+                                }
+
+                            },
+
+
+                            "required": [
+
+                                "nombre",
+
+                                "cantidad",
+
+                                "ubicacion"
+
+                            ],
+
+
+                            "additionalProperties":
+                                False
+
+                        }
+
+                    },
+
+
+                    # ==========================
+                    # TEXTO VISIBLE
+                    # ==========================
+
+                    "texto_visible": {
+
+                        "type":
+                            "array",
+
+                        "items": {
+
+                            "type":
+                                "string"
+
+                        }
+
+                    }
+
+                },
+
+
+                "required": [
+
+                    "descripcion",
+
+                    "patrones",
+
+                    "personas",
+
+                    "objetos",
+
+                    "texto_visible"
+
+                ],
+
+
+                "additionalProperties":
+                    False
+
+            }
+
+
+            # ==================================
+            # PETICIÓN A RESPONSES API
             # ==================================
 
             response = client.responses.create(
 
                 model=MODEL,
 
+
                 instructions=instructions,
+
 
                 input=[
                     {
+
                         "role":
                             "user",
 
+
                         "content": [
 
+
+                            # ==================
+                            # TEXTO
+                            # ==================
+
                             {
+
                                 "type":
                                     "input_text",
 
                                 "text":
                                     message
+
                             },
 
+
+                            # ==================
+                            # IMAGEN
+                            # ==================
+
                             {
+
                                 "type":
                                     "input_image",
 
                                 "image_url":
-                                    image_source
+                                    image_source,
+
+                                "detail":
+                                    "high"
+
                             }
 
                         ]
+
                     }
                 ],
 
-                max_output_tokens=1200,
 
-                store=False
+                # ==================================
+                # RESPUESTA ESTRUCTURADA JSON
+                # ==================================
+
+                text={
+
+                    "format": {
+
+                        "type":
+                            "json_schema",
+
+                        "name":
+                            "analisis_visual",
+
+                        "strict":
+                            True,
+
+                        "schema":
+                            response_schema
+
+                    }
+
+                },
+
+
+                # ==================================
+                # RAZONAMIENTO
+                # ==================================
+
+                reasoning={
+
+                    "effort":
+                        "none"
+
+                },
+
+
+                max_output_tokens=
+                    1400,
+
+
+                store=
+                    False
+
             )
 
 
             # ==================================
-            # OBTENER RESPUESTA
+            # OBTENER TEXTO DE RESPUESTA
             # ==================================
 
             output_text = (
@@ -679,6 +973,10 @@ REGLAS:
                 or ""
             ).strip()
 
+
+            # ==================================
+            # VALIDAR RESPUESTA
+            # ==================================
 
             if not output_text:
 
@@ -694,32 +992,6 @@ REGLAS:
 
 
             # ==================================
-            # LIMPIAR BLOQUE DE CÓDIGO
-            # POR SI EL MODELO LO UTILIZA
-            # ==================================
-
-            if output_text.startswith(
-                "```"
-            ):
-
-                output_text = (
-                    output_text
-                    .strip("`")
-                    .strip()
-                )
-
-
-                if output_text.lower().startswith(
-                    "json"
-                ):
-
-                    output_text = (
-                        output_text[4:]
-                        .strip()
-                    )
-
-
-            # ==================================
             # CONVERTIR RESPUESTA A JSON
             # ==================================
 
@@ -729,10 +1001,11 @@ REGLAS:
                     output_text
                 )
 
+
             except json.JSONDecodeError:
 
                 print(
-                    "Respuesta recibida de OpenAI:"
+                    "Respuesta no válida de OpenAI:"
                 )
 
                 print(
@@ -744,43 +1017,8 @@ REGLAS:
                     500,
                     {
                         "error":
-                            "La IA respondió, pero el resultado "
-                            "no pudo convertirse a JSON."
-                    }
-                )
-
-                return
-
-
-            # ==================================
-            # VALIDAR CAMPOS ESPERADOS
-            # ==================================
-
-            expected_keys = {
-
-                "descripcion",
-
-                "patrones",
-
-                "personas",
-
-                "objetos",
-
-                "texto_visible"
-
-            }
-
-
-            if not expected_keys.issubset(
-                analysis.keys()
-            ):
-
-                self.send_json(
-                    500,
-                    {
-                        "error":
-                            "La respuesta de la IA no contiene "
-                            "todos los campos esperados."
+                            "No fue posible interpretar "
+                            "el análisis generado por la IA."
                     }
                 )
 
@@ -794,8 +1032,10 @@ REGLAS:
             self.send_json(
                 200,
                 {
+
                     "analysis":
                         analysis
+
                 }
             )
 

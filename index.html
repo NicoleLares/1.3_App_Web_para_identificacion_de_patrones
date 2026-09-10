@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="Aplicación web para la identificación de patrones y elementos presentes en imágenes mediante Inteligencia Artificial.">
+
+    <title>
+        1.3 App Web para Identificación de Patrones
+    </title>
+
+    <link rel="stylesheet" href="assets/css/styles.css">
+
+</head>
+
+
+<body>
+
+    <main class="app">
+
+
+        <!-- ==========================================
+             ENCABEZADO
+        =========================================== -->
+
+        <header class="header">
+
+            <div class="header-info">
+
+                <h1>
+                    Identificación de Patrones
+                </h1>
+
+                <p>
+                    Análisis de imágenes mediante Inteligencia Artificial
+                </p>
+
+            </div>
+
+
+            <div class="header-actions">
+
+                <button id="newChatButton" class="new-chat-button" type="button">
+                    + Nueva imagen
+                </button>
+
+
+                <span class="status">
+                    ● IA disponible
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- ==========================================
+             CONTENIDO PRINCIPAL
+        =========================================== -->
+
+        <section class="detector-layout">
+
+
+            <!-- ======================================
+                 PANEL DE IMAGEN
+            ======================================= -->
+
+            <article class="panel image-panel">
+
+                <div class="panel-header">
+
+                    <h2>
+                        Imagen a analizar
+                    </h2>
+
+                    <p>
+                        Selecciona una imagen desde tu dispositivo
+                    </p>
+
+                </div>
+
+
+                <!-- ==================================
+                     SELECTOR DE ARCHIVOS
+                =================================== -->
+
+                <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+
+
+                <label for="imageInput" class="upload-button">
+                    📁 Seleccionar imagen
+                </label>
+
+
+                <!-- ==================================
+                     PREVISUALIZACIÓN
+                =================================== -->
+
+                <div id="imagePreviewContainer" class="image-preview">
+
+                    <div id="previewPlaceholder" class="preview-placeholder">
+
+                        <div class="preview-icon">
+                            🖼️
+                        </div>
+
+
+                        <p>
+                            Aquí aparecerá la imagen
+                        </p>
+
+
+                        <span>
+                            Formatos permitidos:
+                            JPG, PNG y WEBP
+                        </span>
+
+                    </div>
+
+
+                    <img id="previewImage" src="" alt="Imagen seleccionada para analizar" hidden>
+
+                </div>
+
+
+                <!-- ==================================
+                     INFORMACIÓN DEL ARCHIVO
+                =================================== -->
+
+                <div id="fileInfo" class="file-info" hidden>
+
+                    <strong id="fileName">
+                    </strong>
+
+
+                    <span id="fileSize">
+                    </span>
+
+                </div>
+
+            </article>
+
+
+            <!-- ======================================
+                 PANEL DE RESULTADOS
+            ======================================= -->
+
+            <article class="panel analysis-panel">
+
+                <div class="panel-header">
+
+                    <h2>
+                        Patrones identificados
+                    </h2>
+
+                    <p>
+                        Resultados obtenidos mediante Inteligencia Artificial
+                    </p>
+
+                </div>
+
+
+                <!-- ==================================
+                     ESTADO INICIAL
+                =================================== -->
+
+                <div id="analysisEmpty" class="analysis-empty">
+
+                    <div class="analysis-empty-icon">
+                        🔎
+                    </div>
+
+
+                    <p>
+                        El análisis aparecerá aquí
+                    </p>
+
+
+                    <span>
+                        Primero selecciona una imagen
+                    </span>
+
+                </div>
+
+
+                <!-- ==================================
+                     CARGANDO
+                =================================== -->
+
+                <div id="analysisLoading" class="analysis-loading" hidden>
+
+                    <div class="loader">
+                    </div>
+
+
+                    <p>
+                        Identificando patrones...
+                    </p>
+
+                </div>
+
+
+                <!-- ==================================
+                     RESULTADOS
+                =================================== -->
+
+                <div id="analysisResult" class="analysis-result" hidden>
+
+
+                    <!-- ==================================
+                         DESCRIPCIÓN GENERAL
+                    =================================== -->
+
+                    <section class="result-section">
+
+                        <h3>
+                            🔍 Descripción general
+                        </h3>
+
+                        <p id="descriptionResult">
+                        </p>
+
+                    </section>
+
+
+                    <!-- ==================================
+                         PERSONAS
+                    =================================== -->
+
+                    <section class="result-section">
+
+                        <h3>
+                            👤 Personas detectadas
+                        </h3>
+
+
+                        <div id="peopleResult" class="result-list">
+                        </div>
+
+                    </section>
+
+
+                    <!-- ==================================
+                         OBJETOS
+                    =================================== -->
+
+                    <section class="result-section">
+
+                        <h3>
+                            📦 Objetos identificados
+                        </h3>
+
+
+                        <div id="objectsResult" class="result-list">
+                        </div>
+
+                    </section>
+
+
+                    <!-- ==================================
+                         TEXTO
+                    =================================== -->
+
+                    <section class="result-section">
+
+                        <h3>
+                            📝 Texto visible
+                        </h3>
+
+
+                        <div id="textResult" class="result-list">
+                        </div>
+
+                    </section>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- ==========================================
+             CONSULTA PARA LA IA
+        =========================================== -->
+
+        <form id="chatForm" class="chat-form">
+
+            <input id="messageInput" type="text" maxlength="500" placeholder="Ej. ¿Qué objetos aparecen en esta imagen?"
+                autocomplete="off">
+
+
+            <button id="sendButton" type="submit">
+                Analizar imagen
+            </button>
+
+        </form>
+
+
+        <!-- ==========================================
+             MENSAJES DE ERROR
+        =========================================== -->
+
+        <div id="errorMessage" class="error-message" role="alert" hidden>
+        </div>
+
+
+        <!-- ==========================================
+             PIE DE PÁGINA
+        =========================================== -->
+
+        <footer class="footer">
+
+            <p class="developer-name">
+                Nicole Dayana Esparza Lares
+            </p>
+
+            <p>
+                No. Control: 22200208
+            </p>
+
+            <p>
+                TecNM Campus Pachuca
+            </p>
+
+            <p>
+                Inteligencia Artificial aplicada a las TIC
+            </p>
+
+            <p>
+                Práctica 1.3 - App Web para Identificación de Patrones
+            </p>
+
+        </footer>
+
+    </main>
+
+
+    <!-- ==========================================
+         JAVASCRIPT
+    =========================================== -->
+
+    <script src="assets/js/app.js"></script>
+
+</body>
+
+</html>

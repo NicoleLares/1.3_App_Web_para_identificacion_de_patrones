@@ -1,0 +1,950 @@
+/* ==========================================
+   CONFIGURACIÓN GENERAL
+========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+[hidden] {
+    display: none !important;
+}
+
+
+:root {
+    --background: #08111f;
+    --background-secondary: #0d192b;
+
+    --panel: #111f33;
+    --panel-secondary: #17283f;
+
+    --border: #263a59;
+    --border-light: #344c70;
+
+    --primary: #397df6;
+    --primary-hover: #2869dd;
+
+    --text: #f1f5fb;
+    --text-secondary: #a4b3c8;
+    --text-muted: #74879f;
+
+    --success: #57dda3;
+    --error: #ff8999;
+
+    --radius: 16px;
+}
+
+
+/* ==========================================
+   BODY
+========================================== */
+
+body {
+    min-height: 100vh;
+
+    padding: 30px;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    color: var(--text);
+
+    background:
+        radial-gradient(circle at top left,
+            #142b4c,
+            transparent 35%),
+        linear-gradient(135deg,
+            #060d18,
+            #0a1525,
+            #101e32);
+}
+
+
+/* ==========================================
+   APLICACIÓN
+========================================== */
+
+.app {
+    width: 100%;
+    max-width: 1250px;
+
+    margin: 0 auto;
+
+    overflow: hidden;
+
+    background:
+        rgba(12,
+            24,
+            41,
+            0.96);
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 30px 80px rgba(0,
+            0,
+            0,
+            0.4);
+}
+
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.header {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 25px;
+
+    padding: 25px 30px;
+
+    border-bottom:
+        1px solid var(--border);
+
+    background:
+        rgba(15,
+            29,
+            48,
+            0.85);
+}
+
+
+.header h1 {
+    margin-bottom: 6px;
+
+    font-size: 27px;
+
+    color: #ffffff;
+}
+
+
+.header p {
+    font-size: 14px;
+
+    color: var(--text-secondary);
+}
+
+
+.header-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    flex-shrink: 0;
+}
+
+
+/* ==========================================
+   ESTADO DE LA IA
+========================================== */
+
+.status {
+    font-size: 13px;
+
+    color: var(--success);
+
+    white-space: nowrap;
+}
+
+
+/* ==========================================
+   BOTÓN NUEVA IMAGEN
+========================================== */
+
+.new-chat-button {
+    padding: 10px 16px;
+
+    border:
+        1px solid var(--border-light);
+
+    border-radius: 10px;
+
+    background: #17263d;
+
+    color: #e4edf9;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+
+
+.new-chat-button:hover {
+    background: #203653;
+
+    transform:
+        translateY(-1px);
+}
+
+
+/* ==========================================
+   CONTENEDOR DE LOS DOS PANELES
+========================================== */
+
+.detector-layout {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2,
+            minmax(0, 1fr));
+
+    gap: 22px;
+
+    padding: 26px;
+}
+
+
+/* ==========================================
+   PANELES
+========================================== */
+
+.panel {
+    min-height: 520px;
+
+    padding: 22px;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(145deg,
+            #111f33,
+            #101c2e);
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius);
+}
+
+
+.panel-header {
+    margin-bottom: 20px;
+}
+
+
+.panel-header h2 {
+    margin-bottom: 7px;
+
+    font-size: 20px;
+
+    color: #ffffff;
+}
+
+
+.panel-header p {
+    font-size: 13px;
+
+    color: var(--text-secondary);
+}
+
+
+/* ==========================================
+   BOTÓN SELECCIONAR IMAGEN
+========================================== */
+
+.upload-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-bottom: 16px;
+
+    padding: 11px 18px;
+
+    border-radius: 10px;
+
+    background:
+        var(--primary);
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+
+
+.upload-button:hover {
+    background:
+        var(--primary-hover);
+
+    transform:
+        translateY(-1px);
+}
+
+
+/* ==========================================
+   PREVISUALIZACIÓN
+========================================== */
+
+.image-preview {
+    position: relative;
+
+    display: flex;
+
+    width: 100%;
+    min-height: 350px;
+
+    justify-content: center;
+    align-items: center;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(145deg,
+            #09131f,
+            #0c1828);
+
+    border:
+        2px dashed #304968;
+
+    border-radius: 14px;
+}
+
+
+.image-preview img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    max-height: 460px;
+
+    object-fit: contain;
+}
+
+
+/* ==========================================
+   PLACEHOLDER DE LA IMAGEN
+========================================== */
+
+.preview-placeholder {
+    padding: 30px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+}
+
+
+.preview-icon {
+    margin-bottom: 15px;
+
+    font-size: 52px;
+}
+
+
+.preview-placeholder p {
+    margin-bottom: 7px;
+
+    color: #bac7d8;
+
+    font-size: 15px;
+
+    font-weight: bold;
+}
+
+
+.preview-placeholder span {
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+/* ==========================================
+   INFORMACIÓN DEL ARCHIVO
+========================================== */
+
+.file-info {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 15px;
+
+    margin-top: 12px;
+
+    padding: 11px 14px;
+
+    background:
+        var(--panel-secondary);
+
+    border:
+        1px solid #263c59;
+
+    border-radius: 9px;
+
+    color:
+        var(--text-secondary);
+
+    font-size: 12px;
+}
+
+
+.file-info strong {
+    overflow: hidden;
+
+    color: #d8e3f1;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* ==========================================
+   ESTADO SIN RESULTADOS
+========================================== */
+
+.analysis-empty {
+    display: flex;
+
+    min-height: 390px;
+
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 30px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+}
+
+
+.analysis-empty-icon {
+    margin-bottom: 17px;
+
+    font-size: 55px;
+}
+
+
+.analysis-empty p {
+    margin-bottom: 7px;
+
+    color: #becadb;
+
+    font-size: 15px;
+
+    font-weight: bold;
+}
+
+
+.analysis-empty span {
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   CARGANDO
+========================================== */
+
+.analysis-loading {
+    min-height: 390px;
+
+    padding-top: 135px;
+
+    text-align: center;
+
+    color: var(--text-secondary);
+}
+
+
+.loader {
+    width: 42px;
+    height: 42px;
+
+    margin:
+        0 auto 20px;
+
+    border:
+        4px solid #253954;
+
+    border-top-color:
+        var(--primary);
+
+    border-radius: 50%;
+
+    animation:
+        loader-spin 0.8s linear infinite;
+}
+
+
+@keyframes loader-spin {
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+
+}
+
+
+/* ==========================================
+   CONTENEDOR DE RESULTADOS
+========================================== */
+
+.analysis-result {
+    max-height: 600px;
+
+    padding-right: 5px;
+
+    overflow-y: auto;
+}
+
+
+/* ==========================================
+   SCROLLBAR
+========================================== */
+
+.analysis-result::-webkit-scrollbar {
+    width: 8px;
+}
+
+
+.analysis-result::-webkit-scrollbar-track {
+    background: #0c1828;
+
+    border-radius: 10px;
+}
+
+
+.analysis-result::-webkit-scrollbar-thumb {
+    background: #314966;
+
+    border-radius: 10px;
+}
+
+
+/* ==========================================
+   SECCIONES DEL RESULTADO
+========================================== */
+
+.result-section {
+    margin-bottom: 23px;
+}
+
+
+.result-section:last-child {
+    margin-bottom: 0;
+}
+
+
+.result-section h3 {
+    margin-bottom: 11px;
+
+    font-size: 15px;
+
+    color: #ffffff;
+}
+
+
+.result-section>p {
+    padding: 12px 14px;
+
+    line-height: 1.6;
+
+    background:
+        #15253a;
+
+    border:
+        1px solid #263d5a;
+
+    border-radius: 10px;
+
+    color: #c3cfdf;
+
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   LISTA DE RESULTADOS
+========================================== */
+
+.result-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+}
+
+
+/* ==========================================
+   TARJETAS
+========================================== */
+
+.result-card {
+    padding: 13px 14px;
+
+    background: #182940;
+
+    border:
+        1px solid #2a4261;
+
+    border-radius: 10px;
+
+    transition:
+        border 0.2s,
+        transform 0.2s;
+}
+
+
+.result-card:hover {
+    border-color: #3f6290;
+
+    transform:
+        translateY(-1px);
+}
+
+
+.result-card strong {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #7faaff;
+
+    font-size: 14px;
+
+    text-transform: capitalize;
+}
+
+
+.result-card p {
+    margin-bottom: 6px;
+
+    line-height: 1.45;
+
+    color: #c2cede;
+
+    font-size: 13px;
+}
+
+
+.result-card span {
+    display: block;
+
+    margin-top: 4px;
+
+    line-height: 1.4;
+
+    color: #8ea1b9;
+
+    font-size: 12px;
+}
+
+
+/* ==========================================
+   TEXTO DETECTADO
+========================================== */
+
+.text-card {
+    padding: 11px 13px;
+
+    background: #17283b;
+
+    border-left:
+        3px solid var(--primary);
+
+    border-radius: 7px;
+
+    color: #cbd6e4;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+/* ==========================================
+   RESULTADO VACÍO
+========================================== */
+
+.empty-result {
+    padding: 10px;
+
+    color: #7589a4;
+
+    font-size: 13px;
+
+    font-style: italic;
+}
+
+
+/* ==========================================
+   FORMULARIO
+========================================== */
+
+.chat-form {
+    display: flex;
+
+    gap: 12px;
+
+    padding:
+        0 26px 25px;
+}
+
+
+.chat-form input {
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 14px 16px;
+
+    outline: none;
+
+    background: #101d2f;
+
+    border:
+        1px solid #304765;
+
+    border-radius: 11px;
+
+    color: #edf3fb;
+
+    font-size: 14px;
+
+    transition:
+        border 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.chat-form input:focus {
+    border-color:
+        var(--primary);
+
+    box-shadow:
+        0 0 0 3px rgba(57,
+            125,
+            246,
+            0.12);
+}
+
+
+.chat-form input::placeholder {
+    color: #71839b;
+}
+
+
+/* ==========================================
+   BOTÓN ANALIZAR
+========================================== */
+
+.chat-form button {
+    min-width: 150px;
+
+    padding: 13px 22px;
+
+    border: none;
+
+    border-radius: 11px;
+
+    background:
+        var(--primary);
+
+    color: #ffffff;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+
+
+.chat-form button:hover:not(:disabled) {
+    background:
+        var(--primary-hover);
+
+    transform:
+        translateY(-1px);
+}
+
+
+.chat-form button:disabled {
+    opacity: 0.55;
+
+    cursor: not-allowed;
+}
+
+
+/* ==========================================
+   ERRORES
+========================================== */
+
+.error-message {
+    margin:
+        0 26px 22px;
+
+    padding: 12px 15px;
+
+    background: #351a23;
+
+    border:
+        1px solid #75404b;
+
+    border-radius: 10px;
+
+    color: var(--error);
+
+    font-size: 13px;
+}
+
+
+/* ==========================================
+   FOOTER
+========================================== */
+
+.footer {
+    padding: 20px 25px;
+
+    text-align: center;
+
+    background: #0c1727;
+
+    border-top:
+        1px solid var(--border);
+
+    color: #74869e;
+
+    font-size: 11px;
+
+    line-height: 1.65;
+}
+
+
+.footer .developer-name {
+    color: #b2c0d1;
+
+    font-weight: bold;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 850px) {
+
+    body {
+        padding: 12px;
+    }
+
+
+    .header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        padding: 20px;
+    }
+
+
+    .header-actions {
+        width: 100%;
+
+        justify-content:
+            space-between;
+    }
+
+
+    .detector-layout {
+        grid-template-columns:
+            1fr;
+
+        padding: 16px;
+    }
+
+
+    .panel {
+        min-height: auto;
+    }
+
+
+    .chat-form {
+        flex-direction: column;
+
+        padding:
+            0 16px 20px;
+    }
+
+
+    .chat-form button {
+        width: 100%;
+    }
+
+
+    .error-message {
+        margin:
+            0 16px 20px;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .header h1 {
+        font-size: 22px;
+    }
+
+
+    .header-actions {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .new-chat-button {
+        width: 100%;
+    }
+
+
+    .image-preview {
+        min-height: 260px;
+    }
+
+
+    .panel {
+        padding: 17px;
+    }
+
+}

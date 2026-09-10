@@ -18,7 +18,6 @@
 
 </head>
 
-
 <body>
 
     <main class="app">
@@ -67,10 +66,11 @@
 
 
             <!-- ======================================
-                 PANEL DE IMAGEN
+                 PANEL IZQUIERDO
             ======================================= -->
 
             <article class="panel image-panel">
+
 
                 <div class="panel-header">
 
@@ -79,14 +79,14 @@
                     </h2>
 
                     <p>
-                        Selecciona una imagen desde tu dispositivo
+                        Sube una imagen o utiliza una URL de Internet
                     </p>
 
                 </div>
 
 
                 <!-- ==================================
-                     SELECTOR DE ARCHIVOS
+                     SUBIR ARCHIVO
                 =================================== -->
 
                 <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
@@ -95,6 +95,36 @@
                 <label for="imageInput" class="upload-button">
                     📁 Seleccionar imagen
                 </label>
+
+
+                <!-- ==================================
+                     DIVISOR
+                =================================== -->
+
+                <div class="source-divider">
+
+                    <span>
+                        o
+                    </span>
+
+                </div>
+
+
+                <!-- ==================================
+                     URL
+                =================================== -->
+
+                <div class="url-container">
+
+                    <input id="imageUrlInput" type="url" placeholder="https://ejemplo.com/imagen.jpg"
+                        autocomplete="off">
+
+
+                    <button id="loadUrlButton" type="button" class="url-button">
+                        🔗 Usar URL
+                    </button>
+
+                </div>
 
 
                 <!-- ==================================
@@ -116,8 +146,9 @@
 
 
                         <span>
-                            Formatos permitidos:
-                            JPG, PNG y WEBP
+                            Puedes subir JPG, PNG o WEBP
+                            <br>
+                            o proporcionar una URL pública
                         </span>
 
                     </div>
@@ -129,7 +160,7 @@
 
 
                 <!-- ==================================
-                     INFORMACIÓN DEL ARCHIVO
+                     INFORMACIÓN DE LA IMAGEN
                 =================================== -->
 
                 <div id="fileInfo" class="file-info" hidden>
@@ -147,10 +178,11 @@
 
 
             <!-- ======================================
-                 PANEL DE RESULTADOS
+                 PANEL DERECHO
             ======================================= -->
 
             <article class="panel analysis-panel">
+
 
                 <div class="panel-header">
 
@@ -183,6 +215,7 @@
 
                     <span>
                         Primero selecciona una imagen
+                        o proporciona una URL
                     </span>
 
                 </div>
@@ -212,9 +245,7 @@
                 <div id="analysisResult" class="analysis-result" hidden>
 
 
-                    <!-- ==================================
-                         DESCRIPCIÓN GENERAL
-                    =================================== -->
+                    <!-- DESCRIPCIÓN -->
 
                     <section class="result-section">
 
@@ -228,9 +259,21 @@
                     </section>
 
 
-                    <!-- ==================================
-                         PERSONAS
-                    =================================== -->
+                    <!-- PATRONES -->
+
+                    <section class="result-section">
+
+                        <h3>
+                            🧩 Patrones visuales
+                        </h3>
+
+                        <div id="patternsResult" class="result-list">
+                        </div>
+
+                    </section>
+
+
+                    <!-- PERSONAS -->
 
                     <section class="result-section">
 
@@ -238,16 +281,13 @@
                             👤 Personas detectadas
                         </h3>
 
-
                         <div id="peopleResult" class="result-list">
                         </div>
 
                     </section>
 
 
-                    <!-- ==================================
-                         OBJETOS
-                    =================================== -->
+                    <!-- OBJETOS -->
 
                     <section class="result-section">
 
@@ -255,23 +295,19 @@
                             📦 Objetos identificados
                         </h3>
 
-
                         <div id="objectsResult" class="result-list">
                         </div>
 
                     </section>
 
 
-                    <!-- ==================================
-                         TEXTO
-                    =================================== -->
+                    <!-- TEXTO -->
 
                     <section class="result-section">
 
                         <h3>
                             📝 Texto visible
                         </h3>
-
 
                         <div id="textResult" class="result-list">
                         </div>
@@ -286,7 +322,7 @@
 
 
         <!-- ==========================================
-             CONSULTA PARA LA IA
+             PREGUNTA OPCIONAL
         =========================================== -->
 
         <form id="chatForm" class="chat-form">
@@ -303,7 +339,7 @@
 
 
         <!-- ==========================================
-             MENSAJES DE ERROR
+             ERROR
         =========================================== -->
 
         <div id="errorMessage" class="error-message" role="alert" hidden>
@@ -311,7 +347,7 @@
 
 
         <!-- ==========================================
-             PIE DE PÁGINA
+             FOOTER
         =========================================== -->
 
         <footer class="footer">

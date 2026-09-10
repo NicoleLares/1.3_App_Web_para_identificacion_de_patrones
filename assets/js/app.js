@@ -3,32 +3,28 @@
 // ==========================================
 
 /*
-    IMPORTANTE:
-
-    Después de desplegar este nuevo proyecto
-    en Vercel, reemplaza esta dirección por
-    la URL correspondiente a tu proyecto 1.3.
-
-    Ejemplo:
-
-    https://mi-proyecto.vercel.app/api/chat
+    CAMBIA ESTA URL cuando Vercel te dé
+    la URL definitiva del proyecto 1.3.
 */
 
 const API_URL =
-    "https://TU-PROYECTO.vercel.app/api/chat";
+    "https://1-3-app-web-para-identificacion-de.vercel.app/api/chat";
 
 
 // ==========================================
-// CONFIGURACIÓN DE IMAGEN
+// CONFIGURACIÓN
 // ==========================================
 
-const MAX_IMAGE_DIMENSION = 1280;
+const MAX_IMAGE_DIMENSION =
+    1280;
 
-const MAX_DATA_URL_LENGTH = 2400000;
+
+const MAX_DATA_URL_LENGTH =
+    2400000;
 
 
 // ==========================================
-// ELEMENTOS DEL HTML
+// ELEMENTOS HTML
 // ==========================================
 
 const form =
@@ -46,6 +42,18 @@ const messageInput =
 const imageInput =
     document.getElementById(
         "imageInput"
+    );
+
+
+const imageUrlInput =
+    document.getElementById(
+        "imageUrlInput"
+    );
+
+
+const loadUrlButton =
+    document.getElementById(
+        "loadUrlButton"
     );
 
 
@@ -115,6 +123,12 @@ const descriptionResult =
     );
 
 
+const patternsResult =
+    document.getElementById(
+        "patternsResult"
+    );
+
+
 const peopleResult =
     document.getElementById(
         "peopleResult"
@@ -140,19 +154,28 @@ const errorMessage =
 
 
 // ==========================================
-// IMAGEN ACTUAL
+// FUENTE ACTUAL DE LA IMAGEN
 // ==========================================
 
-let currentImage = null;
+let currentImage =
+    null;
+
+
+let currentImageUrl =
+    null;
 
 
 // ==========================================
-// FORMATEAR TAMAÑO DEL ARCHIVO
+// FORMATEAR TAMAÑO
 // ==========================================
 
-function formatFileSize(bytes) {
+function formatFileSize(
+    bytes
+) {
 
-    if (bytes < 1024) {
+    if (
+        bytes < 1024
+    ) {
 
         return (
             bytes +
@@ -195,10 +218,12 @@ function formatFileSize(bytes) {
 
 
 // ==========================================
-// LEER ARCHIVO COMO IMAGEN
+// LEER ARCHIVO
 // ==========================================
 
-function loadImageFile(file) {
+function loadImageFile(
+    file
+) {
 
     return new Promise(
         (
@@ -210,47 +235,51 @@ function loadImageFile(file) {
                 new FileReader();
 
 
-            reader.onload = () => {
+            reader.onload =
+                () => {
 
-                const image =
-                    new Image();
+                    const image =
+                        new Image();
 
 
-                image.onload = () => {
+                    image.onload =
+                        () => {
 
-                    resolve(
-                        image
-                    );
+                            resolve(
+                                image
+                            );
+
+                        };
+
+
+                    image.onerror =
+                        () => {
+
+                            reject(
+                                new Error(
+                                    "No fue posible cargar la imagen."
+                                )
+                            );
+
+                        };
+
+
+                    image.src =
+                        reader.result;
 
                 };
 
 
-                image.onerror = () => {
+            reader.onerror =
+                () => {
 
                     reject(
                         new Error(
-                            "No fue posible cargar la imagen."
+                            "No fue posible leer el archivo."
                         )
                     );
 
                 };
-
-
-                image.src =
-                    reader.result;
-
-            };
-
-
-            reader.onerror = () => {
-
-                reject(
-                    new Error(
-                        "No fue posible leer el archivo."
-                    )
-                );
-
-            };
 
 
             reader.readAsDataURL(
@@ -267,7 +296,9 @@ function loadImageFile(file) {
 // COMPRIMIR IMAGEN
 // ==========================================
 
-async function compressImage(file) {
+async function compressImage(
+    file
+) {
 
     const image =
         await loadImageFile(
@@ -275,13 +306,10 @@ async function compressImage(file) {
         );
 
 
-    // ======================================
-    // CALCULAR ESCALA
-    // ======================================
-
     let scale =
         Math.min(
             1,
+
             MAX_IMAGE_DIMENSION /
             Math.max(
                 image.width,
@@ -289,13 +317,6 @@ async function compressImage(file) {
             )
         );
 
-
-    /*
-        Hacemos varios intentos.
-
-        Si la imagen sigue siendo grande,
-        disminuimos calidad y resolución.
-    */
 
     for (
         let attempt = 0;
@@ -323,10 +344,6 @@ async function compressImage(file) {
             );
 
 
-        // ==================================
-        // CANVAS
-        // ==================================
-
         const canvas =
             document.createElement(
                 "canvas"
@@ -335,6 +352,7 @@ async function compressImage(file) {
 
         canvas.width =
             width;
+
 
         canvas.height =
             height;
@@ -349,21 +367,13 @@ async function compressImage(file) {
         if (!context) {
 
             throw new Error(
-                "El navegador no permite procesar la imagen."
+                "El navegador no pudo procesar la imagen."
             );
 
         }
 
 
-        // ==================================
-        // FONDO BLANCO
-        // ==================================
-
-        /*
-            Esto evita que imágenes PNG
-            transparentes se conviertan
-            a un fondo negro.
-        */
+        // Fondo blanco para PNG transparente
 
         context.fillStyle =
             "#ffffff";
@@ -377,10 +387,6 @@ async function compressImage(file) {
         );
 
 
-        // ==================================
-        // DIBUJAR IMAGEN
-        // ==================================
-
         context.drawImage(
             image,
             0,
@@ -390,13 +396,9 @@ async function compressImage(file) {
         );
 
 
-        // ==================================
-        // CALIDAD
-        // ==================================
-
         const quality =
             Math.max(
-                0.5,
+                0.50,
                 0.86 -
                 (
                     attempt *
@@ -405,20 +407,12 @@ async function compressImage(file) {
             );
 
 
-        // ==================================
-        // CONVERTIR A JPEG BASE64
-        // ==================================
-
         const dataURL =
             canvas.toDataURL(
                 "image/jpeg",
                 quality
             );
 
-
-        // ==================================
-        // VALIDAR TAMAÑO
-        // ==================================
 
         if (
             dataURL.length <=
@@ -429,10 +423,6 @@ async function compressImage(file) {
 
         }
 
-
-        // ==================================
-        // REDUCIR PARA SIGUIENTE INTENTO
-        // ==================================
 
         scale *=
             0.78;
@@ -448,11 +438,44 @@ async function compressImage(file) {
 
 
 // ==========================================
-// CAMBIO DE IMAGEN
+// VALIDAR URL
+// ==========================================
+
+function isValidImageUrl(
+    value
+) {
+
+    try {
+
+        const url =
+            new URL(
+                value
+            );
+
+
+        return (
+            url.protocol ===
+            "https:"
+        );
+
+    }
+
+    catch {
+
+        return false;
+
+    }
+
+}
+
+
+// ==========================================
+// SELECCIONAR ARCHIVO LOCAL
 // ==========================================
 
 imageInput.addEventListener(
     "change",
+
     async () => {
 
         hideError();
@@ -469,14 +492,12 @@ imageInput.addEventListener(
         }
 
 
-        // ==================================
-        // VALIDAR TIPO
-        // ==================================
-
         const allowedTypes = [
+
             "image/jpeg",
             "image/png",
             "image/webp"
+
         ];
 
 
@@ -500,9 +521,21 @@ imageInput.addEventListener(
         }
 
 
-        // ==================================
-        // MOSTRAR PROCESANDO
-        // ==================================
+        // Desactivar URL
+
+        currentImageUrl =
+            null;
+
+
+        imageUrlInput.value =
+            "";
+
+
+        currentImage =
+            null;
+
+
+        // Estado preparando
 
         previewImage.hidden =
             true;
@@ -531,18 +564,10 @@ imageInput.addEventListener(
             true;
 
 
-        currentImage =
-            null;
-
-
         resetAnalysis();
 
 
         try {
-
-            // ==================================
-            // COMPRIMIR
-            // ==================================
 
             currentImage =
                 await compressImage(
@@ -550,9 +575,13 @@ imageInput.addEventListener(
                 );
 
 
-            // ==================================
-            // MOSTRAR IMAGEN
-            // ==================================
+            previewImage.onerror =
+                null;
+
+
+            previewImage.onload =
+                null;
+
 
             previewImage.src =
                 currentImage;
@@ -566,10 +595,6 @@ imageInput.addEventListener(
                 true;
 
 
-            // ==================================
-            // INFORMACIÓN
-            // ==================================
-
             fileName.textContent =
                 file.name;
 
@@ -582,7 +607,6 @@ imageInput.addEventListener(
 
             fileInfo.hidden =
                 false;
-
 
         }
 
@@ -606,11 +630,194 @@ imageInput.addEventListener(
 
 
 // ==========================================
-// ENVIAR IMAGEN
+// USAR URL
+// ==========================================
+
+loadUrlButton.addEventListener(
+    "click",
+
+    () => {
+
+        loadImageFromUrl();
+
+    }
+);
+
+
+// ==========================================
+// ENTER EN EL CAMPO URL
+// ==========================================
+
+imageUrlInput.addEventListener(
+    "keydown",
+
+    (event) => {
+
+        if (
+            event.key ===
+            "Enter"
+        ) {
+
+            event.preventDefault();
+
+
+            loadImageFromUrl();
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// CARGAR IMAGEN DESDE URL
+// ==========================================
+
+function loadImageFromUrl() {
+
+    hideError();
+
+
+    const url =
+        imageUrlInput.value.trim();
+
+
+    if (!url) {
+
+        showError(
+            "Escribe la URL de una imagen."
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+        !isValidImageUrl(
+            url
+        )
+    ) {
+
+        showError(
+            "La dirección debe ser una URL HTTPS válida."
+        );
+
+
+        return;
+
+    }
+
+
+    // Desactivar archivo local
+
+    currentImage =
+        null;
+
+
+    imageInput.value =
+        "";
+
+
+    currentImageUrl =
+        url;
+
+
+    resetAnalysis();
+
+
+    // Estado cargando preview
+
+    previewPlaceholder.hidden =
+        false;
+
+
+    previewPlaceholder.innerHTML = `
+        <div class="preview-icon">
+            ⏳
+        </div>
+
+        <p>
+            Cargando imagen...
+        </p>
+
+        <span>
+            Obteniendo imagen desde Internet
+        </span>
+    `;
+
+
+    previewImage.hidden =
+        true;
+
+
+    fileInfo.hidden =
+        true;
+
+
+    // ======================================
+    // PREVIEW
+    // ======================================
+
+    previewImage.onload =
+        () => {
+
+            previewImage.hidden =
+                false;
+
+
+            previewPlaceholder.hidden =
+                true;
+
+
+            fileName.textContent =
+                "Imagen desde Internet";
+
+
+            fileSize.textContent =
+                "URL externa";
+
+
+            fileInfo.hidden =
+                false;
+
+
+            hideError();
+
+        };
+
+
+    previewImage.onerror =
+        () => {
+
+            previewImage.hidden =
+                true;
+
+
+            restorePreviewPlaceholder();
+
+
+            showError(
+                "No fue posible mostrar la imagen. Verifica que la URL sea pública y apunte directamente a una imagen."
+            );
+
+        };
+
+
+    previewImage.src =
+        url;
+
+}
+
+
+// ==========================================
+// ENVIAR A LA API
 // ==========================================
 
 form.addEventListener(
     "submit",
+
     async (event) => {
 
         event.preventDefault();
@@ -620,13 +827,16 @@ form.addEventListener(
 
 
         // ==================================
-        // VALIDAR IMAGEN
+        // VALIDAR FUENTE
         // ==================================
 
-        if (!currentImage) {
+        if (
+            !currentImage &&
+            !currentImageUrl
+        ) {
 
             showError(
-                "Primero selecciona una imagen."
+                "Selecciona una imagen o proporciona una URL."
             );
 
 
@@ -636,28 +846,20 @@ form.addEventListener(
 
 
         // ==================================
-        // PREGUNTA
+        // MENSAJE
         // ==================================
 
         let message =
             messageInput.value.trim();
 
 
-        // ==================================
-        // PREGUNTA PREDETERMINADA
-        // ==================================
-
         if (!message) {
 
             message =
-                "Analiza esta imagen e identifica los patrones, objetos, personas y texto visible.";
+                "Analiza esta imagen e identifica los patrones visuales, objetos, personas y texto visible.";
 
         }
 
-
-        // ==================================
-        // VALIDAR LONGITUD
-        // ==================================
 
         if (
             message.length >
@@ -665,7 +867,7 @@ form.addEventListener(
         ) {
 
             showError(
-                "La pregunta no puede superar los 500 caracteres."
+                "La consulta no puede superar los 500 caracteres."
             );
 
 
@@ -673,10 +875,6 @@ form.addEventListener(
 
         }
 
-
-        // ==================================
-        // CARGANDO
-        // ==================================
 
         setLoading(
             true
@@ -712,7 +910,10 @@ form.addEventListener(
                                         message,
 
                                     image:
-                                        currentImage
+                                        currentImage,
+
+                                    image_url:
+                                        currentImageUrl
 
                                 }
                             )
@@ -720,10 +921,6 @@ form.addEventListener(
                     }
                 );
 
-
-            // ==================================
-            // VALIDAR RESPUESTA JSON
-            // ==================================
 
             const contentType =
                 response.headers.get(
@@ -749,10 +946,6 @@ form.addEventListener(
                 await response.json();
 
 
-            // ==================================
-            // ERROR HTTP
-            // ==================================
-
             if (!response.ok) {
 
                 throw new Error(
@@ -763,27 +956,18 @@ form.addEventListener(
             }
 
 
-            // ==================================
-            // VALIDAR ANÁLISIS
-            // ==================================
-
             if (!data.analysis) {
 
                 throw new Error(
-                    "El servidor no devolvió los resultados del análisis."
+                    "No se recibieron resultados del análisis."
                 );
 
             }
 
 
-            // ==================================
-            // MOSTRAR RESULTADOS
-            // ==================================
-
             renderAnalysis(
                 data.analysis
             );
-
 
         }
 
@@ -800,7 +984,6 @@ form.addEventListener(
             showError(
                 error.message
             );
-
 
         }
 
@@ -824,10 +1007,6 @@ function renderAnalysis(
     analysis
 ) {
 
-    // ======================================
-    // CAMBIAR VISTA
-    // ======================================
-
     analysisEmpty.hidden =
         true;
 
@@ -840,36 +1019,25 @@ function renderAnalysis(
         false;
 
 
-    // ======================================
-    // DESCRIPCIÓN
-    // ======================================
-
     descriptionResult.textContent =
         analysis.descripcion ||
         "No se generó una descripción.";
 
 
-    // ======================================
-    // PERSONAS
-    // ======================================
+    renderPatterns(
+        analysis.patrones
+    );
+
 
     renderPeople(
         analysis.personas
     );
 
 
-    // ======================================
-    // OBJETOS
-    // ======================================
-
     renderObjects(
         analysis.objetos
     );
 
-
-    // ======================================
-    // TEXTO
-    // ======================================
 
     renderVisibleText(
         analysis.texto_visible
@@ -879,7 +1047,65 @@ function renderAnalysis(
 
 
 // ==========================================
-// MOSTRAR PERSONAS
+// PATRONES
+// ==========================================
+
+function renderPatterns(
+    patterns
+) {
+
+    patternsResult.innerHTML =
+        "";
+
+
+    if (
+        !Array.isArray(
+            patterns
+        )
+        ||
+        patterns.length === 0
+    ) {
+
+        addEmptyResult(
+            patternsResult,
+            "No se identificaron patrones visuales relevantes."
+        );
+
+
+        return;
+
+    }
+
+
+    patterns.forEach(
+        (pattern) => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "pattern-card";
+
+
+            card.textContent =
+                pattern;
+
+
+            patternsResult.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// PERSONAS
 // ==========================================
 
 function renderPeople(
@@ -925,10 +1151,6 @@ function renderPeople(
                 "result-card";
 
 
-            // ==================================
-            // TÍTULO
-            // ==================================
-
             const title =
                 document.createElement(
                     "strong"
@@ -938,10 +1160,6 @@ function renderPeople(
             title.textContent =
                 `Persona ${index + 1}`;
 
-
-            // ==================================
-            // DESCRIPCIÓN
-            // ==================================
 
             const description =
                 document.createElement(
@@ -953,10 +1171,6 @@ function renderPeople(
                 person.descripcion ||
                 "Sin descripción.";
 
-
-            // ==================================
-            // UBICACIÓN
-            // ==================================
 
             const location =
                 document.createElement(
@@ -972,10 +1186,6 @@ function renderPeople(
                 );
 
 
-            // ==================================
-            // ACTIVIDAD
-            // ==================================
-
             const activity =
                 document.createElement(
                     "span"
@@ -989,10 +1199,6 @@ function renderPeople(
                     "No determinada"
                 );
 
-
-            // ==================================
-            // AGREGAR
-            // ==================================
 
             card.appendChild(
                 title
@@ -1025,7 +1231,7 @@ function renderPeople(
 
 
 // ==========================================
-// MOSTRAR OBJETOS
+// OBJETOS
 // ==========================================
 
 function renderObjects(
@@ -1068,10 +1274,6 @@ function renderObjects(
                 "result-card";
 
 
-            // ==================================
-            // NOMBRE
-            // ==================================
-
             const title =
                 document.createElement(
                     "strong"
@@ -1082,10 +1284,6 @@ function renderObjects(
                 object.nombre ||
                 "Objeto";
 
-
-            // ==================================
-            // CANTIDAD
-            // ==================================
 
             const amount =
                 document.createElement(
@@ -1101,10 +1299,6 @@ function renderObjects(
                 );
 
 
-            // ==================================
-            // UBICACIÓN
-            // ==================================
-
             const location =
                 document.createElement(
                     "span"
@@ -1118,10 +1312,6 @@ function renderObjects(
                     "No determinada"
                 );
 
-
-            // ==================================
-            // AGREGAR
-            // ==================================
 
             card.appendChild(
                 title
@@ -1149,7 +1339,7 @@ function renderObjects(
 
 
 // ==========================================
-// MOSTRAR TEXTO VISIBLE
+// TEXTO VISIBLE
 // ==========================================
 
 function renderVisibleText(
@@ -1237,7 +1427,7 @@ function addEmptyResult(
 
 
 // ==========================================
-// ESTADO DE CARGA
+// CARGANDO
 // ==========================================
 
 function setLoading(
@@ -1249,6 +1439,14 @@ function setLoading(
 
 
     imageInput.disabled =
+        loading;
+
+
+    imageUrlInput.disabled =
+        loading;
+
+
+    loadUrlButton.disabled =
         loading;
 
 
@@ -1315,6 +1513,10 @@ function resetAnalysis() {
         "";
 
 
+    patternsResult.innerHTML =
+        "";
+
+
     peopleResult.innerHTML =
         "";
 
@@ -1335,18 +1537,31 @@ function resetAnalysis() {
 
 newChatButton.addEventListener(
     "click",
-    () => {
 
-        // ==================================
-        // BORRAR IMAGEN
-        // ==================================
+    () => {
 
         currentImage =
             null;
 
 
+        currentImageUrl =
+            null;
+
+
         imageInput.value =
             "";
+
+
+        imageUrlInput.value =
+            "";
+
+
+        previewImage.onload =
+            null;
+
+
+        previewImage.onerror =
+            null;
 
 
         previewImage.src =
@@ -1356,17 +1571,6 @@ newChatButton.addEventListener(
         previewImage.hidden =
             true;
 
-
-        // ==================================
-        // RESTAURAR PLACEHOLDER
-        // ==================================
-
-        restorePreviewPlaceholder();
-
-
-        // ==================================
-        // ARCHIVO
-        // ==================================
 
         fileInfo.hidden =
             true;
@@ -1380,24 +1584,15 @@ newChatButton.addEventListener(
             "";
 
 
-        // ==================================
-        // PREGUNTA
-        // ==================================
-
         messageInput.value =
             "";
 
 
-        // ==================================
-        // RESULTADOS
-        // ==================================
+        restorePreviewPlaceholder();
+
 
         resetAnalysis();
 
-
-        // ==================================
-        // ERROR
-        // ==================================
 
         hideError();
 
@@ -1421,8 +1616,9 @@ function restorePreviewPlaceholder() {
         </p>
 
         <span>
-            Formatos permitidos:
-            JPG, PNG y WEBP
+            Puedes subir JPG, PNG o WEBP
+            <br>
+            o proporcionar una URL pública
         </span>
     `;
 
@@ -1434,7 +1630,7 @@ function restorePreviewPlaceholder() {
 
 
 // ==========================================
-// MOSTRAR ERROR
+// ERROR
 // ==========================================
 
 function showError(

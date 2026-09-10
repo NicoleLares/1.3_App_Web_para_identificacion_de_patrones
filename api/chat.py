@@ -4,6 +4,7 @@ import json
 import os
 
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse
 
 from openai import OpenAI
 
@@ -33,7 +34,7 @@ MODEL = "gpt-5.6-luna"
 
 
 # ==========================================
-# HANDLER
+# HANDLER PRINCIPAL
 # ==========================================
 
 class handler(BaseHTTPRequestHandler):
@@ -50,7 +51,6 @@ class handler(BaseHTTPRequestHandler):
             ""
         )
 
-
         if (
             ALLOWED_ORIGIN
             and
@@ -62,11 +62,27 @@ class handler(BaseHTTPRequestHandler):
                 origin
             )
 
-
             self.send_header(
                 "Vary",
                 "Origin"
             )
+
+
+    # ======================================
+    # VALIDAR ORIGEN
+    # ======================================
+
+    def origin_is_allowed(self):
+
+        if not ALLOWED_ORIGIN:
+            return True
+
+        origin = self.headers.get(
+            "Origin",
+            ""
+        )
+
+        return origin == ALLOWED_ORIGIN
 
 
     # ======================================
@@ -86,20 +102,16 @@ class handler(BaseHTTPRequestHandler):
             "utf-8"
         )
 
-
         self.send_response(
             status_code
         )
-
 
         self.send_header(
             "Content-Type",
             "application/json; charset=utf-8"
         )
 
-
         self.add_cors_headers()
-
 
         self.send_header(
             "Content-Length",
@@ -108,35 +120,10 @@ class handler(BaseHTTPRequestHandler):
             )
         )
 
-
         self.end_headers()
-
 
         self.wfile.write(
             body
-        )
-
-
-    # ======================================
-    # VALIDAR ORIGEN
-    # ======================================
-
-    def origin_is_allowed(self):
-
-        origin = self.headers.get(
-            "Origin",
-            ""
-        )
-
-
-        if not ALLOWED_ORIGIN:
-
-            return True
-
-
-        return (
-            origin ==
-            ALLOWED_ORIGIN
         )
 
 
@@ -152,38 +139,30 @@ class handler(BaseHTTPRequestHandler):
                 403
             )
 
-
             self.end_headers()
 
-
             return
-
 
         self.send_response(
             204
         )
 
-
         self.add_cors_headers()
-
 
         self.send_header(
             "Access-Control-Allow-Methods",
             "POST, OPTIONS"
         )
 
-
         self.send_header(
             "Access-Control-Allow-Headers",
             "Content-Type"
         )
 
-
         self.send_header(
             "Access-Control-Max-Age",
             "86400"
         )
-
 
         self.end_headers()
 
@@ -198,7 +177,7 @@ class handler(BaseHTTPRequestHandler):
             405,
             {
                 "error":
-                    "Este endpoint solamente acepta peticiones POST."
+                    "Este endpoint solamente acepta POST."
             }
         )
 
@@ -225,12 +204,11 @@ class handler(BaseHTTPRequestHandler):
                     }
                 )
 
-
                 return
 
 
             # ==================================
-            # CONTENT LENGTH
+            # LEER CONTENT-LENGTH
             # ==================================
 
             try:
@@ -238,10 +216,9 @@ class handler(BaseHTTPRequestHandler):
                 content_length = int(
                     self.headers.get(
                         "Content-Length",
-                        0
+                        "0"
                     )
                 )
-
 
             except ValueError:
 
@@ -253,12 +230,11 @@ class handler(BaseHTTPRequestHandler):
                     }
                 )
 
-
                 return
 
 
             # ==================================
-            # VALIDAR BODY
+            # VALIDAR TAMAÑO
             # ==================================
 
             if content_length <= 0:
@@ -271,14 +247,10 @@ class handler(BaseHTTPRequestHandler):
                     }
                 )
 
-
                 return
 
 
-            if (
-                content_length >
-                MAX_BODY_BYTES
-            ):
+            if content_length > MAX_BODY_BYTES:
 
                 self.send_json(
                     413,
@@ -288,7 +260,6 @@ class handler(BaseHTTPRequestHandler):
                     }
                 )
 
-
                 return
 
 
@@ -297,12 +268,12 @@ class handler(BaseHTTPRequestHandler):
             # ==================================
 
             raw_body = self.rfile.read(
-                    content_length
-                )
+                content_length
+            )
 
 
             # ==================================
-            # CONVERTIR JSON
+            # CONVERTIR A JSON
             # ==================================
 
             try:
@@ -312,7 +283,6 @@ class handler(BaseHTTPRequestHandler):
                         "utf-8"
                     )
                 )
-
 
             except (
                 json.JSONDecodeError,
@@ -327,7 +297,6 @@ class handler(BaseHTTPRequestHandler):
                     }
                 )
 
-
                 return
 
 
@@ -337,35 +306,51 @@ class handler(BaseHTTPRequestHandler):
 
             message = str(
                 data.get(
-                    "message",
-                    ""
+                    "message"
                 )
+                or ""
             ).strip()
 
 
             # ==================================
-            # IMAGEN
+            # IMAGEN BASE64
             # ==================================
 
             image = str(
                 data.get(
-                    "image",
-                    ""
+                    "image"
                 )
+                or ""
             ).strip()
 
 
             # ==================================
-            # VALIDAR MENSAJE
+            # URL DE IMAGEN
+            # ==================================
+
+            image_url = str(
+                data.get(
+                    "image_url"
+                )
+                or ""
+            ).strip()
+
+
+            # ==================================
+            # MENSAJE PREDETERMINADO
             # ==================================
 
             if not message:
 
                 message = (
-                    "Analiza la imagen e identifica "
-                    "los elementos y patrones visibles."
+                    "Analiza esta imagen e identifica "
+                    "los patrones y elementos visibles."
                 )
 
+
+            # ==================================
+            # VALIDAR TEXTO
+            # ==================================
 
             if len(message) > 500:
 
@@ -373,93 +358,144 @@ class handler(BaseHTTPRequestHandler):
                     400,
                     {
                         "error":
-                            "La pregunta supera los 500 caracteres."
+                            "La consulta supera los 500 caracteres."
                     }
                 )
-
 
                 return
 
 
             # ==================================
-            # VALIDAR IMAGEN
+            # VALIDAR QUE EXISTA IMAGEN
             # ==================================
 
-            if not image:
-
-                self.send_json(
-                    400,
-                    {
-                        "error":
-                            "Es necesario seleccionar una imagen."
-                    }
-                )
-
-
-                return
-
-
-            # ==================================
-            # FORMATOS ADMITIDOS
-            # ==================================
-
-            valid_prefixes = (
-                "data:image/jpeg;base64,",
-                "data:image/png;base64,",
-                "data:image/webp;base64,"
-            )
-
-
-            if not image.startswith(
-                valid_prefixes
+            if (
+                not image
+                and
+                not image_url
             ):
 
                 self.send_json(
                     400,
                     {
                         "error":
-                            "El formato de la imagen no es válido."
+                            "Debes seleccionar una imagen "
+                            "o proporcionar una URL."
                     }
                 )
-
 
                 return
 
 
             # ==================================
-            # VALIDAR BASE64
+            # FUENTE QUE SE ENVIARÁ A OPENAI
             # ==================================
 
-            try:
+            image_source = None
 
-                base64_data = image.split(
+
+            # ==================================
+            # OPCIÓN 1:
+            # IMAGEN SUBIDA EN BASE64
+            # ==================================
+
+            if image:
+
+                valid_prefixes = (
+
+                    "data:image/jpeg;base64,",
+
+                    "data:image/png;base64,",
+
+                    "data:image/webp;base64,"
+
+                )
+
+
+                if not image.startswith(
+                    valid_prefixes
+                ):
+
+                    self.send_json(
+                        400,
+                        {
+                            "error":
+                                "El formato de la imagen "
+                                "no es válido."
+                        }
+                    )
+
+                    return
+
+
+                # ==============================
+                # VALIDAR BASE64
+                # ==============================
+
+                try:
+
+                    base64_data = image.split(
                         ",",
                         1
                     )[1]
 
+                    base64.b64decode(
+                        base64_data,
+                        validate=True
+                    )
 
-                base64.b64decode(
-                    base64_data,
-                    validate=True
+                except (
+                    IndexError,
+                    ValueError,
+                    binascii.Error
+                ):
+
+                    self.send_json(
+                        400,
+                        {
+                            "error":
+                                "Los datos Base64 de la imagen "
+                                "no son válidos."
+                        }
+                    )
+
+                    return
+
+
+                image_source = image
+
+
+            # ==================================
+            # OPCIÓN 2:
+            # IMAGEN MEDIANTE URL
+            # ==================================
+
+            else:
+
+                parsed_url = urlparse(
+                    image_url
                 )
 
 
-            except (
-                IndexError,
-                ValueError,
-                binascii.Error
-            ):
+                if (
+                    parsed_url.scheme != "https"
+                    or
+                    not parsed_url.netloc
+                ):
 
-                self.send_json(
-                    400,
-                    {
-                        "error":
-                            "Los datos de la imagen no son válidos."
-                    }
-                )
+                    self.send_json(
+                        400,
+                        {
+                            "error":
+                                "La URL debe ser una dirección "
+                                "HTTPS válida."
+                        }
+                    )
+
+                    return
 
 
-                return
+                image_source = image_url
 
 
             # ==================================
@@ -481,12 +517,11 @@ class handler(BaseHTTPRequestHandler):
                     }
                 )
 
-
                 return
 
 
             # ==================================
-            # CLIENTE OPENAI
+            # CLIENTE DE OPENAI
             # ==================================
 
             client = OpenAI(
@@ -495,221 +530,101 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # INSTRUCCIONES
+            # INSTRUCCIONES PARA LA IA
             # ==================================
 
             instructions = """
-Eres un sistema especializado en análisis visual e
-identificación de patrones dentro de imágenes.
+Eres un sistema especializado en análisis visual
+e identificación de patrones.
 
-Debes analizar únicamente la información visible en la
-imagen proporcionada.
+Analiza únicamente la imagen proporcionada.
 
-Tu análisis debe:
+Devuelve SOLAMENTE un objeto JSON válido.
 
-1. Generar una descripción general de la escena.
+No utilices Markdown.
+No utilices bloques de código.
+No escribas texto antes ni después del JSON.
 
-2. Detectar la presencia de personas.
+La respuesta debe tener exactamente esta estructura:
 
-3. Para cada persona visible, describe solamente
-características observables y apropiadas como:
-ropa, postura, actividad y posición aproximada.
+{
+    "descripcion": "string",
 
-4. No identifiques ni intentes proporcionar el nombre
-o identidad de una persona real.
+    "patrones": [
+        "string"
+    ],
 
-5. No infieras características sensibles de las personas.
+    "personas": [
+        {
+            "descripcion": "string",
+            "ubicacion": "string",
+            "actividad": "string"
+        }
+    ],
 
-6. Identifica los principales objetos presentes.
+    "objetos": [
+        {
+            "nombre": "string",
+            "cantidad": 1,
+            "ubicacion": "string"
+        }
+    ],
 
-7. Agrupa objetos iguales cuando sea posible.
+    "texto_visible": [
+        "string"
+    ]
+}
 
-8. Indica una cantidad aproximada de cada objeto.
+REGLAS:
 
-9. Indica la ubicación aproximada de los elementos usando
-términos como izquierda, derecha, centro, parte superior
-o parte inferior.
+1. Describe brevemente la escena.
 
-10. Identifica patrones visuales relevantes como elementos
-repetidos, distribuciones, formas o colores cuando ayuden
-a comprender la imagen.
+2. Identifica patrones visuales relevantes como:
+   elementos repetidos,
+   colores predominantes,
+   formas,
+   distribuciones,
+   agrupaciones,
+   simetrías
+   o estructuras visuales.
 
-11. Detecta texto solamente cuando sea suficientemente
-legible.
+3. Detecta si existen personas.
 
-12. No inventes objetos, personas ni texto que no puedas
-observar con suficiente claridad.
+4. Para las personas describe únicamente:
+   vestimenta,
+   postura,
+   actividad
+   y ubicación aproximada.
 
-13. Cuando exista incertidumbre, indícalo mediante una
-descripción prudente.
+5. No intentes identificar el nombre
+   o identidad de personas reales.
 
-Responde siempre en español.
+6. No infieras atributos sensibles.
+
+7. Identifica los principales objetos.
+
+8. Agrupa objetos iguales cuando sea posible.
+
+9. La cantidad de objetos debe ser
+   un número entero positivo.
+
+10. Usa ubicaciones aproximadas como:
+    izquierda,
+    derecha,
+    centro,
+    parte superior
+    o parte inferior.
+
+11. Detecta texto solamente cuando
+    sea claramente legible.
+
+12. Si una categoría no tiene resultados,
+    devuelve un arreglo vacío [].
+
+13. No inventes información.
+
+14. Responde siempre en español.
 """
-
-
-            # ==================================
-            # ESQUEMA JSON
-            # ==================================
-
-            response_schema = {
-
-                "type":
-                    "object",
-
-                "properties": {
-
-                    "descripcion": {
-
-                        "type":
-                            "string"
-
-                    },
-
-
-                    "personas": {
-
-                        "type":
-                            "array",
-
-                        "items": {
-
-                            "type":
-                                "object",
-
-                            "properties": {
-
-                                "descripcion": {
-
-                                    "type":
-                                        "string"
-
-                                },
-
-
-                                "ubicacion": {
-
-                                    "type":
-                                        "string"
-
-                                },
-
-
-                                "actividad": {
-
-                                    "type":
-                                        "string"
-
-                                }
-
-                            },
-
-
-                            "required": [
-
-                                "descripcion",
-                                "ubicacion",
-                                "actividad"
-
-                            ],
-
-
-                            "additionalProperties":
-                                False
-
-                        }
-
-                    },
-
-
-                    "objetos": {
-
-                        "type":
-                            "array",
-
-                        "items": {
-
-                            "type":
-                                "object",
-
-                            "properties": {
-
-                                "nombre": {
-
-                                    "type":
-                                        "string"
-
-                                },
-
-
-                                "cantidad": {
-
-                                    "type":
-                                        "integer",
-
-                                    "minimum":
-                                        1
-
-                                },
-
-
-                                "ubicacion": {
-
-                                    "type":
-                                        "string"
-
-                                }
-
-                            },
-
-
-                            "required": [
-
-                                "nombre",
-                                "cantidad",
-                                "ubicacion"
-
-                            ],
-
-
-                            "additionalProperties":
-                                False
-
-                        }
-
-                    },
-
-
-                    "texto_visible": {
-
-                        "type":
-                            "array",
-
-                        "items": {
-
-                            "type":
-                                "string"
-
-                        }
-
-                    }
-
-                },
-
-
-                "required": [
-
-                    "descripcion",
-                    "personas",
-                    "objetos",
-                    "texto_visible"
-
-                ],
-
-
-                "additionalProperties":
-                    False
-
-            }
 
 
             # ==================================
@@ -718,99 +633,51 @@ Responde siempre en español.
 
             response = client.responses.create(
 
-                model=
-                    MODEL,
+                model=MODEL,
 
-
-                instructions=
-                    instructions,
-
+                instructions=instructions,
 
                 input=[
                     {
-
                         "role":
                             "user",
-
 
                         "content": [
 
                             {
-
                                 "type":
                                     "input_text",
 
-
                                 "text":
                                     message
-
                             },
 
-
                             {
-
                                 "type":
                                     "input_image",
 
-
                                 "image_url":
-                                    image
-
+                                    image_source
                             }
 
                         ]
-
                     }
                 ],
 
+                max_output_tokens=1200,
 
-                text={
-
-                    "format": {
-
-                        "type":
-                            "json_schema",
-
-
-                        "name":
-                            "analisis_visual",
-
-
-                        "strict":
-                            True,
-
-
-                        "schema":
-                            response_schema
-
-                    }
-
-                },
-
-
-                reasoning={
-
-                    "effort":
-                        "none"
-
-                },
-
-
-                max_output_tokens=
-                    1200,
-
-
-                store=
-                    False
-
+                store=False
             )
 
 
             # ==================================
-            # VALIDAR RESPUESTA
+            # OBTENER RESPUESTA
             # ==================================
 
-            output_text = response.output_text
+            output_text = (
+                response.output_text
+                or ""
+            ).strip()
 
 
             if not output_text:
@@ -823,26 +690,53 @@ Responde siempre en español.
                     }
                 )
 
-
                 return
 
 
             # ==================================
-            # CONVERTIR RESPUESTA JSON
+            # LIMPIAR BLOQUE DE CÓDIGO
+            # POR SI EL MODELO LO UTILIZA
+            # ==================================
+
+            if output_text.startswith(
+                "```"
+            ):
+
+                output_text = (
+                    output_text
+                    .strip("`")
+                    .strip()
+                )
+
+
+                if output_text.lower().startswith(
+                    "json"
+                ):
+
+                    output_text = (
+                        output_text[4:]
+                        .strip()
+                    )
+
+
+            # ==================================
+            # CONVERTIR RESPUESTA A JSON
             # ==================================
 
             try:
 
                 analysis = json.loads(
-                        output_text
-                    )
-
+                    output_text
+                )
 
             except json.JSONDecodeError:
 
                 print(
-                    "La respuesta del modelo "
-                    "no pudo convertirse a JSON."
+                    "Respuesta recibida de OpenAI:"
+                )
+
+                print(
+                    output_text
                 )
 
 
@@ -850,10 +744,45 @@ Responde siempre en español.
                     500,
                     {
                         "error":
-                            "No fue posible interpretar el análisis de la IA."
+                            "La IA respondió, pero el resultado "
+                            "no pudo convertirse a JSON."
                     }
                 )
 
+                return
+
+
+            # ==================================
+            # VALIDAR CAMPOS ESPERADOS
+            # ==================================
+
+            expected_keys = {
+
+                "descripcion",
+
+                "patrones",
+
+                "personas",
+
+                "objetos",
+
+                "texto_visible"
+
+            }
+
+
+            if not expected_keys.issubset(
+                analysis.keys()
+            ):
+
+                self.send_json(
+                    500,
+                    {
+                        "error":
+                            "La respuesta de la IA no contiene "
+                            "todos los campos esperados."
+                    }
+                )
 
                 return
 
@@ -865,10 +794,8 @@ Responde siempre en español.
             self.send_json(
                 200,
                 {
-
                     "analysis":
                         analysis
-
                 }
             )
 

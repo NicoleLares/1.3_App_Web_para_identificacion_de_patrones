@@ -2,11 +2,6 @@
 // URL DEL BACKEND
 // ==========================================
 
-/*
-    CAMBIA ESTA URL cuando Vercel te dé
-    la URL definitiva del proyecto 1.3.
-*/
-
 const API_URL =
     "https://1-3-app-web-para-identificacion-de.vercel.app/api/chat";
 
@@ -15,12 +10,9 @@ const API_URL =
 // CONFIGURACIÓN
 // ==========================================
 
-const MAX_IMAGE_DIMENSION =
-    1280;
+const MAX_IMAGE_DIMENSION = 1280;
 
-
-const MAX_DATA_URL_LENGTH =
-    2400000;
+const MAX_DATA_URL_LENGTH = 2400000;
 
 
 // ==========================================
@@ -28,191 +20,119 @@ const MAX_DATA_URL_LENGTH =
 // ==========================================
 
 const form =
-    document.getElementById(
-        "chatForm"
-    );
-
+    document.getElementById("chatForm");
 
 const messageInput =
-    document.getElementById(
-        "messageInput"
-    );
-
+    document.getElementById("messageInput");
 
 const imageInput =
-    document.getElementById(
-        "imageInput"
-    );
-
+    document.getElementById("imageInput");
 
 const imageUrlInput =
-    document.getElementById(
-        "imageUrlInput"
-    );
-
+    document.getElementById("imageUrlInput");
 
 const loadUrlButton =
-    document.getElementById(
-        "loadUrlButton"
-    );
+    document.getElementById("loadUrlButton");
 
+const dropZone =
+    document.getElementById("dropZone");
 
 const previewImage =
-    document.getElementById(
-        "previewImage"
-    );
-
+    document.getElementById("previewImage");
 
 const previewPlaceholder =
-    document.getElementById(
-        "previewPlaceholder"
-    );
-
+    document.getElementById("previewPlaceholder");
 
 const fileInfo =
-    document.getElementById(
-        "fileInfo"
-    );
-
+    document.getElementById("fileInfo");
 
 const fileName =
-    document.getElementById(
-        "fileName"
-    );
-
+    document.getElementById("fileName");
 
 const fileSize =
-    document.getElementById(
-        "fileSize"
-    );
-
+    document.getElementById("fileSize");
 
 const sendButton =
-    document.getElementById(
-        "sendButton"
-    );
-
+    document.getElementById("sendButton");
 
 const newChatButton =
-    document.getElementById(
-        "newChatButton"
-    );
-
+    document.getElementById("newChatButton");
 
 const analysisEmpty =
-    document.getElementById(
-        "analysisEmpty"
-    );
-
+    document.getElementById("analysisEmpty");
 
 const analysisLoading =
-    document.getElementById(
-        "analysisLoading"
-    );
-
+    document.getElementById("analysisLoading");
 
 const analysisResult =
-    document.getElementById(
-        "analysisResult"
-    );
-
+    document.getElementById("analysisResult");
 
 const descriptionResult =
-    document.getElementById(
-        "descriptionResult"
-    );
-
+    document.getElementById("descriptionResult");
 
 const patternsResult =
-    document.getElementById(
-        "patternsResult"
-    );
-
+    document.getElementById("patternsResult");
 
 const peopleResult =
-    document.getElementById(
-        "peopleResult"
-    );
-
+    document.getElementById("peopleResult");
 
 const objectsResult =
-    document.getElementById(
-        "objectsResult"
-    );
-
+    document.getElementById("objectsResult");
 
 const textResult =
-    document.getElementById(
-        "textResult"
-    );
-
+    document.getElementById("textResult");
 
 const errorMessage =
-    document.getElementById(
-        "errorMessage"
-    );
+    document.getElementById("errorMessage");
+
+const totalPeople =
+    document.getElementById("totalPeople");
+
+const totalObjects =
+    document.getElementById("totalObjects");
+
+const totalPatterns =
+    document.getElementById("totalPatterns");
 
 
 // ==========================================
-// FUENTE ACTUAL DE LA IMAGEN
+// ESTADO
 // ==========================================
 
-let currentImage =
-    null;
+let currentImage = null;
 
-
-let currentImageUrl =
-    null;
+let currentImageUrl = null;
 
 
 // ==========================================
 // FORMATEAR TAMAÑO
 // ==========================================
 
-function formatFileSize(
-    bytes
-) {
+function formatFileSize(bytes) {
 
-    if (
-        bytes < 1024
-    ) {
+    if (bytes < 1024) {
 
-        return (
-            bytes +
-            " B"
-        );
+        return bytes + " B";
 
     }
 
 
-    if (
-        bytes <
-        1024 * 1024
-    ) {
+    if (bytes < 1024 * 1024) {
 
         return (
-            (
-                bytes /
-                1024
-            ).toFixed(1)
-            +
-            " KB"
-        );
+            bytes / 1024
+        ).toFixed(1) + " KB";
 
     }
 
 
     return (
+        bytes /
         (
-            bytes /
-            (
-                1024 *
-                1024
-            )
-        ).toFixed(2)
-        +
-        " MB"
-    );
+            1024 *
+            1024
+        )
+    ).toFixed(2) + " MB";
 
 }
 
@@ -221,9 +141,7 @@ function formatFileSize(
 // LEER ARCHIVO
 // ==========================================
 
-function loadImageFile(
-    file
-) {
+function loadImageFile(file) {
 
     return new Promise(
         (
@@ -296,20 +214,15 @@ function loadImageFile(
 // COMPRIMIR IMAGEN
 // ==========================================
 
-async function compressImage(
-    file
-) {
+async function compressImage(file) {
 
     const image =
-        await loadImageFile(
-            file
-        );
+        await loadImageFile(file);
 
 
     let scale =
         Math.min(
             1,
-
             MAX_IMAGE_DIMENSION /
             Math.max(
                 image.width,
@@ -350,18 +263,13 @@ async function compressImage(
             );
 
 
-        canvas.width =
-            width;
+        canvas.width = width;
 
-
-        canvas.height =
-            height;
+        canvas.height = height;
 
 
         const context =
-            canvas.getContext(
-                "2d"
-            );
+            canvas.getContext("2d");
 
 
         if (!context) {
@@ -372,8 +280,6 @@ async function compressImage(
 
         }
 
-
-        // Fondo blanco para PNG transparente
 
         context.fillStyle =
             "#ffffff";
@@ -424,8 +330,7 @@ async function compressImage(
         }
 
 
-        scale *=
-            0.78;
+        scale *= 0.78;
 
     }
 
@@ -441,16 +346,12 @@ async function compressImage(
 // VALIDAR URL
 // ==========================================
 
-function isValidImageUrl(
-    value
-) {
+function isValidImageUrl(value) {
 
     try {
 
         const url =
-            new URL(
-                value
-            );
+            new URL(value);
 
 
         return (
@@ -470,187 +371,247 @@ function isValidImageUrl(
 
 
 // ==========================================
-// SELECCIONAR ARCHIVO LOCAL
+// VALIDAR ARCHIVO
+// ==========================================
+
+function validateFile(file) {
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+
+    return (
+        file &&
+        allowedTypes.includes(
+            file.type
+        )
+    );
+
+}
+
+
+// ==========================================
+// PROCESAR ARCHIVO LOCAL
+// ==========================================
+
+async function processLocalFile(file) {
+
+    hideError();
+
+
+    if (!validateFile(file)) {
+
+        showError(
+            "Selecciona una imagen JPG, PNG o WEBP."
+        );
+
+        return;
+
+    }
+
+
+    currentImageUrl = null;
+
+    currentImage = null;
+
+    imageUrlInput.value = "";
+
+    resetAnalysis();
+
+
+    previewImage.hidden = true;
+
+    previewPlaceholder.hidden = false;
+
+
+    previewPlaceholder.innerHTML = `
+        <div class="upload-icon">
+            ...
+        </div>
+
+        <h3>
+            Preparando imagen
+        </h3>
+
+        <p>
+            Espera un momento
+        </p>
+    `;
+
+
+    fileInfo.hidden = true;
+
+
+    try {
+
+        currentImage =
+            await compressImage(
+                file
+            );
+
+
+        previewImage.onload = null;
+
+        previewImage.onerror = null;
+
+        previewImage.src =
+            currentImage;
+
+        previewImage.hidden =
+            false;
+
+        previewPlaceholder.hidden =
+            true;
+
+
+        fileName.textContent =
+            file.name;
+
+        fileSize.textContent =
+            formatFileSize(
+                file.size
+            );
+
+        fileInfo.hidden =
+            false;
+
+    }
+
+    catch (error) {
+
+        currentImage = null;
+
+        restorePreviewPlaceholder();
+
+        showError(
+            error.message
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// INPUT LOCAL
 // ==========================================
 
 imageInput.addEventListener(
     "change",
-
     async () => {
-
-        hideError();
-
 
         const file =
             imageInput.files[0];
 
 
         if (!file) {
-
             return;
-
         }
 
 
-        const allowedTypes = [
-
-            "image/jpeg",
-            "image/png",
-            "image/webp"
-
-        ];
-
-
-        if (
-            !allowedTypes.includes(
-                file.type
-            )
-        ) {
-
-            imageInput.value =
-                "";
-
-
-            showError(
-                "Selecciona una imagen JPG, PNG o WEBP."
-            );
-
-
-            return;
-
-        }
-
-
-        // Desactivar URL
-
-        currentImageUrl =
-            null;
-
-
-        imageUrlInput.value =
-            "";
-
-
-        currentImage =
-            null;
-
-
-        // Estado preparando
-
-        previewImage.hidden =
-            true;
-
-
-        previewPlaceholder.hidden =
-            false;
-
-
-        previewPlaceholder.innerHTML = `
-            <div class="preview-icon">
-                ⏳
-            </div>
-
-            <p>
-                Preparando imagen...
-            </p>
-
-            <span>
-                Espera un momento
-            </span>
-        `;
-
-
-        fileInfo.hidden =
-            true;
-
-
-        resetAnalysis();
-
-
-        try {
-
-            currentImage =
-                await compressImage(
-                    file
-                );
-
-
-            previewImage.onerror =
-                null;
-
-
-            previewImage.onload =
-                null;
-
-
-            previewImage.src =
-                currentImage;
-
-
-            previewImage.hidden =
-                false;
-
-
-            previewPlaceholder.hidden =
-                true;
-
-
-            fileName.textContent =
-                file.name;
-
-
-            fileSize.textContent =
-                formatFileSize(
-                    file.size
-                );
-
-
-            fileInfo.hidden =
-                false;
-
-        }
-
-        catch (error) {
-
-            currentImage =
-                null;
-
-
-            restorePreviewPlaceholder();
-
-
-            showError(
-                error.message
-            );
-
-        }
+        await processLocalFile(
+            file
+        );
 
     }
 );
 
 
 // ==========================================
-// USAR URL
+// DRAG AND DROP
+// ==========================================
+
+[
+    "dragenter",
+    "dragover"
+].forEach(
+    (eventName) => {
+
+        dropZone.addEventListener(
+            eventName,
+            (event) => {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+                dropZone.classList.add(
+                    "drag-over"
+                );
+
+            }
+        );
+
+    }
+);
+
+
+[
+    "dragleave",
+    "drop"
+].forEach(
+    (eventName) => {
+
+        dropZone.addEventListener(
+            eventName,
+            (event) => {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+                dropZone.classList.remove(
+                    "drag-over"
+                );
+
+            }
+        );
+
+    }
+);
+
+
+dropZone.addEventListener(
+    "drop",
+    async (event) => {
+
+        const files =
+            event.dataTransfer.files;
+
+
+        if (
+            !files ||
+            files.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        await processLocalFile(
+            files[0]
+        );
+
+    }
+);
+
+
+// ==========================================
+// URL
 // ==========================================
 
 loadUrlButton.addEventListener(
     "click",
-
-    () => {
-
-        loadImageFromUrl();
-
-    }
+    loadImageFromUrl
 );
 
 
-// ==========================================
-// ENTER EN EL CAMPO URL
-// ==========================================
-
 imageUrlInput.addEventListener(
     "keydown",
-
     (event) => {
 
         if (
@@ -659,7 +620,6 @@ imageUrlInput.addEventListener(
         ) {
 
             event.preventDefault();
-
 
             loadImageFromUrl();
 
@@ -670,7 +630,7 @@ imageUrlInput.addEventListener(
 
 
 // ==========================================
-// CARGAR IMAGEN DESDE URL
+// CARGAR URL
 // ==========================================
 
 function loadImageFromUrl() {
@@ -688,84 +648,61 @@ function loadImageFromUrl() {
             "Escribe la URL de una imagen."
         );
 
-
         return;
 
     }
 
 
     if (
-        !isValidImageUrl(
-            url
-        )
+        !isValidImageUrl(url)
     ) {
 
         showError(
             "La dirección debe ser una URL HTTPS válida."
         );
 
-
         return;
 
     }
 
 
-    // Desactivar archivo local
+    currentImage = null;
 
-    currentImage =
-        null;
+    currentImageUrl = url;
 
-
-    imageInput.value =
-        "";
-
-
-    currentImageUrl =
-        url;
+    imageInput.value = "";
 
 
     resetAnalysis();
 
 
-    // Estado cargando preview
+    previewImage.hidden = true;
 
-    previewPlaceholder.hidden =
-        false;
+    fileInfo.hidden = true;
+
+    previewPlaceholder.hidden = false;
 
 
     previewPlaceholder.innerHTML = `
-        <div class="preview-icon">
-            ⏳
+        <div class="upload-icon">
+            ...
         </div>
 
-        <p>
-            Cargando imagen...
-        </p>
+        <h3>
+            Cargando imagen
+        </h3>
 
-        <span>
+        <p>
             Obteniendo imagen desde Internet
-        </span>
+        </p>
     `;
 
-
-    previewImage.hidden =
-        true;
-
-
-    fileInfo.hidden =
-        true;
-
-
-    // ======================================
-    // PREVIEW
-    // ======================================
 
     previewImage.onload =
         () => {
 
             previewImage.hidden =
                 false;
-
 
             previewPlaceholder.hidden =
                 true;
@@ -774,10 +711,8 @@ function loadImageFromUrl() {
             fileName.textContent =
                 "Imagen desde Internet";
 
-
             fileSize.textContent =
                 "URL externa";
-
 
             fileInfo.hidden =
                 false;
@@ -791,6 +726,10 @@ function loadImageFromUrl() {
     previewImage.onerror =
         () => {
 
+            currentImageUrl =
+                null;
+
+
             previewImage.hidden =
                 true;
 
@@ -799,7 +738,7 @@ function loadImageFromUrl() {
 
 
             showError(
-                "No fue posible mostrar la imagen. Verifica que la URL sea pública y apunte directamente a una imagen."
+                "No fue posible mostrar la imagen. Verifica que la URL sea pública y directa."
             );
 
         };
@@ -812,23 +751,17 @@ function loadImageFromUrl() {
 
 
 // ==========================================
-// ENVIAR A LA API
+// ENVIAR
 // ==========================================
 
 form.addEventListener(
     "submit",
-
     async (event) => {
 
         event.preventDefault();
 
-
         hideError();
 
-
-        // ==================================
-        // VALIDAR FUENTE
-        // ==================================
 
         if (
             !currentImage &&
@@ -839,15 +772,10 @@ form.addEventListener(
                 "Selecciona una imagen o proporciona una URL."
             );
 
-
             return;
 
         }
 
-
-        // ==================================
-        // MENSAJE
-        // ==================================
 
         let message =
             messageInput.value.trim();
@@ -856,36 +784,28 @@ form.addEventListener(
         if (!message) {
 
             message =
-                "Analiza esta imagen e identifica los patrones visuales, objetos, personas y texto visible.";
+                "Analiza esta imagen. Cuenta las personas visibles, describe a las personas, identifica objetos, texto y patrones visuales.";
 
         }
 
 
         if (
-            message.length >
-            500
+            message.length > 500
         ) {
 
             showError(
                 "La consulta no puede superar los 500 caracteres."
             );
 
-
             return;
 
         }
 
 
-        setLoading(
-            true
-        );
+        setLoading(true);
 
 
         try {
-
-            // ==================================
-            // PETICIÓN
-            // ==================================
 
             const response =
                 await fetch(
@@ -976,7 +896,6 @@ form.addEventListener(
             analysisResult.hidden =
                 true;
 
-
             analysisEmpty.hidden =
                 false;
 
@@ -989,9 +908,7 @@ form.addEventListener(
 
         finally {
 
-            setLoading(
-                false
-            );
+            setLoading(false);
 
         }
 
@@ -1000,28 +917,100 @@ form.addEventListener(
 
 
 // ==========================================
-// MOSTRAR ANÁLISIS
+// RENDER PRINCIPAL
 // ==========================================
 
-function renderAnalysis(
-    analysis
-) {
+function renderAnalysis(analysis) {
 
-    analysisEmpty.hidden =
-        true;
+    analysisEmpty.hidden = true;
 
+    analysisLoading.hidden = true;
 
-    analysisLoading.hidden =
-        true;
-
-
-    analysisResult.hidden =
-        false;
+    analysisResult.hidden = false;
 
 
     descriptionResult.textContent =
         analysis.descripcion ||
         "No se generó una descripción.";
+
+
+    // ======================================
+    // PERSONAS
+    // ======================================
+
+    const peopleCount =
+        Number.isInteger(
+            analysis.total_personas
+        )
+            ? analysis.total_personas
+            : (
+                Array.isArray(
+                    analysis.personas
+                )
+                    ? analysis.personas.length
+                    : 0
+            );
+
+
+    totalPeople.textContent =
+        peopleCount;
+
+
+    // ======================================
+    // OBJETOS
+    // ======================================
+
+    const objectCount =
+        Array.isArray(
+            analysis.objetos
+        )
+            ? analysis.objetos.reduce(
+                (
+                    total,
+                    object
+                ) => {
+
+                    const quantity =
+                        Number(
+                            object.cantidad
+                        );
+
+
+                    return (
+                        total +
+                        (
+                            Number.isFinite(
+                                quantity
+                            )
+                                ? quantity
+                                : 0
+                        )
+                    );
+
+                },
+                0
+            )
+            : 0;
+
+
+    totalObjects.textContent =
+        objectCount;
+
+
+    // ======================================
+    // PATRONES
+    // ======================================
+
+    const patternCount =
+        Array.isArray(
+            analysis.patrones
+        )
+            ? analysis.patrones.length
+            : 0;
+
+
+    totalPatterns.textContent =
+        patternCount;
 
 
     renderPatterns(
@@ -1030,7 +1019,8 @@ function renderAnalysis(
 
 
     renderPeople(
-        analysis.personas
+        analysis.personas,
+        peopleCount
     );
 
 
@@ -1050,19 +1040,13 @@ function renderAnalysis(
 // PATRONES
 // ==========================================
 
-function renderPatterns(
-    patterns
-) {
+function renderPatterns(patterns) {
 
-    patternsResult.innerHTML =
-        "";
+    patternsResult.innerHTML = "";
 
 
     if (
-        !Array.isArray(
-            patterns
-        )
-        ||
+        !Array.isArray(patterns) ||
         patterns.length === 0
     ) {
 
@@ -1070,7 +1054,6 @@ function renderPatterns(
             patternsResult,
             "No se identificaron patrones visuales relevantes."
         );
-
 
         return;
 
@@ -1109,26 +1092,25 @@ function renderPatterns(
 // ==========================================
 
 function renderPeople(
-    people
+    people,
+    totalCount
 ) {
 
-    peopleResult.innerHTML =
-        "";
+    peopleResult.innerHTML = "";
 
 
     if (
-        !Array.isArray(
-            people
-        )
-        ||
+        !Array.isArray(people) ||
         people.length === 0
     ) {
 
         addEmptyResult(
             peopleResult,
-            "No se detectaron personas."
-        );
 
+            totalCount > 0
+                ? `${totalCount} persona(s) detectada(s).`
+                : "No se detectaron personas."
+        );
 
         return;
 
@@ -1204,16 +1186,13 @@ function renderPeople(
                 title
             );
 
-
             card.appendChild(
                 description
             );
 
-
             card.appendChild(
                 location
             );
-
 
             card.appendChild(
                 activity
@@ -1227,6 +1206,32 @@ function renderPeople(
         }
     );
 
+
+    if (
+        totalCount >
+        people.length
+    ) {
+
+        const note =
+            document.createElement(
+                "p"
+            );
+
+
+        note.className =
+            "empty-result";
+
+
+        note.textContent =
+            `Se detectaron ${totalCount} personas en total. Se muestran ${people.length} descripciones individuales.`;
+
+
+        peopleResult.appendChild(
+            note
+        );
+
+    }
+
 }
 
 
@@ -1234,19 +1239,13 @@ function renderPeople(
 // OBJETOS
 // ==========================================
 
-function renderObjects(
-    objects
-) {
+function renderObjects(objects) {
 
-    objectsResult.innerHTML =
-        "";
+    objectsResult.innerHTML = "";
 
 
     if (
-        !Array.isArray(
-            objects
-        )
-        ||
+        !Array.isArray(objects) ||
         objects.length === 0
     ) {
 
@@ -1254,7 +1253,6 @@ function renderObjects(
             objectsResult,
             "No se identificaron objetos."
         );
-
 
         return;
 
@@ -1317,11 +1315,9 @@ function renderObjects(
                 title
             );
 
-
             card.appendChild(
                 amount
             );
-
 
             card.appendChild(
                 location
@@ -1339,22 +1335,16 @@ function renderObjects(
 
 
 // ==========================================
-// TEXTO VISIBLE
+// TEXTO
 // ==========================================
 
-function renderVisibleText(
-    texts
-) {
+function renderVisibleText(texts) {
 
-    textResult.innerHTML =
-        "";
+    textResult.innerHTML = "";
 
 
     if (
-        !Array.isArray(
-            texts
-        )
-        ||
+        !Array.isArray(texts) ||
         texts.length === 0
     ) {
 
@@ -1362,7 +1352,6 @@ function renderVisibleText(
             textResult,
             "No se detectó texto legible."
         );
-
 
         return;
 
@@ -1397,7 +1386,7 @@ function renderVisibleText(
 
 
 // ==========================================
-// RESULTADO VACÍO
+// VACÍO
 // ==========================================
 
 function addEmptyResult(
@@ -1430,32 +1419,19 @@ function addEmptyResult(
 // CARGANDO
 // ==========================================
 
-function setLoading(
-    loading
-) {
+function setLoading(loading) {
 
-    messageInput.disabled =
-        loading;
+    messageInput.disabled = loading;
 
+    imageInput.disabled = loading;
 
-    imageInput.disabled =
-        loading;
+    imageUrlInput.disabled = loading;
 
+    loadUrlButton.disabled = loading;
 
-    imageUrlInput.disabled =
-        loading;
+    sendButton.disabled = loading;
 
-
-    loadUrlButton.disabled =
-        loading;
-
-
-    sendButton.disabled =
-        loading;
-
-
-    newChatButton.disabled =
-        loading;
+    newChatButton.disabled = loading;
 
 
     if (loading) {
@@ -1463,16 +1439,13 @@ function setLoading(
         analysisEmpty.hidden =
             true;
 
-
         analysisResult.hidden =
             true;
-
 
         analysisLoading.hidden =
             false;
 
-
-        sendButton.textContent =
+        sendButton.innerHTML =
             "Analizando...";
 
     }
@@ -1482,9 +1455,8 @@ function setLoading(
         analysisLoading.hidden =
             true;
 
-
-        sendButton.textContent =
-            "Analizar imagen";
+        sendButton.innerHTML =
+            "Analizar <span>✦</span>";
 
     }
 
@@ -1492,41 +1464,34 @@ function setLoading(
 
 
 // ==========================================
-// REINICIAR ANÁLISIS
+// RESET ANÁLISIS
 // ==========================================
 
 function resetAnalysis() {
 
-    analysisResult.hidden =
-        true;
+    analysisResult.hidden = true;
+
+    analysisLoading.hidden = true;
+
+    analysisEmpty.hidden = false;
 
 
-    analysisLoading.hidden =
-        true;
+    descriptionResult.textContent = "";
+
+    patternsResult.innerHTML = "";
+
+    peopleResult.innerHTML = "";
+
+    objectsResult.innerHTML = "";
+
+    textResult.innerHTML = "";
 
 
-    analysisEmpty.hidden =
-        false;
+    totalPeople.textContent = "0";
 
+    totalObjects.textContent = "0";
 
-    descriptionResult.textContent =
-        "";
-
-
-    patternsResult.innerHTML =
-        "";
-
-
-    peopleResult.innerHTML =
-        "";
-
-
-    objectsResult.innerHTML =
-        "";
-
-
-    textResult.innerHTML =
-        "";
+    totalPatterns.textContent = "0";
 
 }
 
@@ -1537,62 +1502,40 @@ function resetAnalysis() {
 
 newChatButton.addEventListener(
     "click",
-
     () => {
 
-        currentImage =
-            null;
+        currentImage = null;
+
+        currentImageUrl = null;
 
 
-        currentImageUrl =
-            null;
+        imageInput.value = "";
+
+        imageUrlInput.value = "";
 
 
-        imageInput.value =
-            "";
+        previewImage.onload = null;
+
+        previewImage.onerror = null;
+
+        previewImage.src = "";
+
+        previewImage.hidden = true;
 
 
-        imageUrlInput.value =
-            "";
+        fileInfo.hidden = true;
+
+        fileName.textContent = "";
+
+        fileSize.textContent = "";
 
 
-        previewImage.onload =
-            null;
-
-
-        previewImage.onerror =
-            null;
-
-
-        previewImage.src =
-            "";
-
-
-        previewImage.hidden =
-            true;
-
-
-        fileInfo.hidden =
-            true;
-
-
-        fileName.textContent =
-            "";
-
-
-        fileSize.textContent =
-            "";
-
-
-        messageInput.value =
-            "";
+        messageInput.value = "";
 
 
         restorePreviewPlaceholder();
 
-
         resetAnalysis();
-
 
         hideError();
 
@@ -1601,24 +1544,26 @@ newChatButton.addEventListener(
 
 
 // ==========================================
-// RESTAURAR PREVIEW
+// RESTAURAR PLACEHOLDER
 // ==========================================
 
 function restorePreviewPlaceholder() {
 
     previewPlaceholder.innerHTML = `
-        <div class="preview-icon">
-            🖼️
+        <div class="upload-icon">
+            ↑
         </div>
 
+        <h3>
+            Arrastra una imagen aquí
+        </h3>
+
         <p>
-            Aquí aparecerá la imagen
+            o haz clic para seleccionar un archivo
         </p>
 
         <span>
-            Puedes subir JPG, PNG o WEBP
-            <br>
-            o proporcionar una URL pública
+            JPG · PNG · WEBP
         </span>
     `;
 
@@ -1633,13 +1578,10 @@ function restorePreviewPlaceholder() {
 // ERROR
 // ==========================================
 
-function showError(
-    message
-) {
+function showError(message) {
 
     errorMessage.textContent =
         message;
-
 
     errorMessage.hidden =
         false;
@@ -1653,11 +1595,8 @@ function showError(
 
 function hideError() {
 
-    errorMessage.textContent =
-        "";
+    errorMessage.textContent = "";
 
-
-    errorMessage.hidden =
-        true;
+    errorMessage.hidden = true;
 
 }

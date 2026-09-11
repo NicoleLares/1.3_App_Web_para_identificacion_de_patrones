@@ -13,22 +13,20 @@ from openai import OpenAI
 # CONFIGURACIÓN CORS
 # ==========================================
 
-# Tu GitHub Pages
 DEFAULT_ORIGIN = "https://nicolelares.github.io"
 
 
-# Orígenes permitidos
 ALLOWED_ORIGINS = {
+
     DEFAULT_ORIGIN,
 
-    # También permitimos pruebas locales
     "http://127.0.0.1:5500",
+
     "http://localhost:5500",
+
 }
 
 
-# Si existe ALLOWED_ORIGIN en Vercel,
-# también se agrega automáticamente.
 configured_origins = os.environ.get(
     "ALLOWED_ORIGIN",
     ""
@@ -42,6 +40,7 @@ for configured_origin in configured_origins.split(","):
         .strip()
         .rstrip("/")
     )
+
 
     if configured_origin:
 
@@ -58,21 +57,21 @@ MODEL = "gpt-5.6-luna"
 
 
 # ==========================================
-# TAMAÑO MÁXIMO DE LA PETICIÓN
+# TAMAÑO MÁXIMO
 # ==========================================
 
 MAX_BODY_BYTES = 3_500_000
 
 
 # ==========================================
-# HANDLER PRINCIPAL
+# HANDLER
 # ==========================================
 
 class handler(BaseHTTPRequestHandler):
 
 
     # ======================================
-    # OBTENER ORIGEN
+    # ORIGEN DE LA PETICIÓN
     # ======================================
 
     def get_request_origin(self):
@@ -97,7 +96,7 @@ class handler(BaseHTTPRequestHandler):
 
 
     # ======================================
-    # AGREGAR HEADERS CORS
+    # CORS
     # ======================================
 
     def add_cors_headers(self):
@@ -112,6 +111,7 @@ class handler(BaseHTTPRequestHandler):
                 origin
             )
 
+
             self.send_header(
                 "Vary",
                 "Origin"
@@ -119,7 +119,7 @@ class handler(BaseHTTPRequestHandler):
 
 
     # ======================================
-    # RESPUESTA JSON
+    # ENVIAR JSON
     # ======================================
 
     def send_json(
@@ -152,7 +152,9 @@ class handler(BaseHTTPRequestHandler):
 
         self.send_header(
             "Content-Length",
-            str(len(body))
+            str(
+                len(body)
+            )
         )
 
 
@@ -166,7 +168,6 @@ class handler(BaseHTTPRequestHandler):
 
     # ======================================
     # OPTIONS
-    # PREFLIGHT DE CORS
     # ======================================
 
     def do_OPTIONS(self):
@@ -247,7 +248,7 @@ class handler(BaseHTTPRequestHandler):
         try:
 
             # ==================================
-            # VALIDAR ORIGEN
+            # CORS
             # ==================================
 
             if not self.origin_is_allowed():
@@ -320,17 +321,13 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # LEER BODY
+            # BODY
             # ==================================
 
             raw_body = self.rfile.read(
                 content_length
             )
 
-
-            # ==================================
-            # CONVERTIR BODY A JSON
-            # ==================================
 
             try:
 
@@ -369,7 +366,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # IMAGEN SUBIDA
+            # IMAGEN BASE64
             # ==================================
 
             image = str(
@@ -381,7 +378,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # URL DE INTERNET
+            # URL
             # ==================================
 
             image_url = str(
@@ -399,14 +396,10 @@ class handler(BaseHTTPRequestHandler):
             if not message:
 
                 message = (
-                    "Analiza esta imagen e identifica "
-                    "los patrones y elementos visibles."
+                    "Analiza la imagen, cuenta las personas "
+                    "e identifica objetos, texto y patrones."
                 )
 
-
-            # ==================================
-            # VALIDAR TEXTO
-            # ==================================
 
             if len(message) > 500:
 
@@ -422,7 +415,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # VALIDAR FUENTE DE IMAGEN
+            # VALIDAR FUENTE
             # ==================================
 
             if (
@@ -443,24 +436,23 @@ class handler(BaseHTTPRequestHandler):
                 return
 
 
-            # ==================================
-            # FUENTE FINAL PARA OPENAI
-            # ==================================
-
             image_source = None
 
 
             # ==================================
-            # OPCIÓN 1
             # IMAGEN BASE64
             # ==================================
 
             if image:
 
                 valid_prefixes = (
+
                     "data:image/jpeg;base64,",
+
                     "data:image/png;base64,",
+
                     "data:image/webp;base64,"
+
                 )
 
 
@@ -479,10 +471,6 @@ class handler(BaseHTTPRequestHandler):
 
                     return
 
-
-                # ==============================
-                # VALIDAR BASE64
-                # ==============================
 
                 try:
 
@@ -520,8 +508,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # OPCIÓN 2
-            # URL DE INTERNET
+            # URL
             # ==================================
 
             else:
@@ -575,7 +562,7 @@ class handler(BaseHTTPRequestHandler):
 
 
             # ==================================
-            # CLIENTE OPENAI
+            # CLIENTE
             # ==================================
 
             client = OpenAI(
@@ -589,59 +576,82 @@ class handler(BaseHTTPRequestHandler):
 
             instructions = """
 Eres un sistema especializado en análisis visual
-e identificación de patrones dentro de imágenes.
+e identificación de patrones en imágenes.
 
-Analiza únicamente la información visible en la imagen.
+Analiza exclusivamente la información que sea
+razonablemente visible en la imagen.
 
-Debes realizar las siguientes tareas:
+TAREAS:
 
-1. Dar una descripción general breve de la imagen.
+1. Genera una descripción general breve de la imagen.
 
-2. Identificar patrones visuales relevantes como:
-   - elementos repetidos,
-   - colores predominantes,
-   - formas similares,
-   - agrupaciones,
-   - distribuciones,
-   - simetrías,
-   - estructuras visuales.
+2. Cuenta todas las personas razonablemente visibles.
 
-3. Detectar la presencia de personas.
+3. Coloca el número total de personas en el campo
+   total_personas.
 
-4. Para cada persona describe únicamente
-   características visibles y apropiadas como:
+4. Si no hay personas visibles:
+   total_personas debe ser 0.
+
+5. Evita contar dos veces a la misma persona.
+
+6. Describe a las personas claramente visibles mediante:
    - vestimenta,
    - postura,
    - actividad,
    - ubicación aproximada.
 
-5. No identifiques ni intentes proporcionar
-   la identidad de personas reales.
+7. Si existe un grupo muy grande de personas,
+   cuenta a todas las personas razonablemente visibles,
+   pero describe individualmente solamente hasta
+   12 de las personas más claras.
 
-6. No infieras atributos sensibles de las personas.
+8. NO identifiques a ninguna persona por su nombre.
 
-7. Identifica los principales objetos visibles.
+9. NO identifiques famosos, celebridades, deportistas,
+   políticos, artistas o cualquier otra persona real,
+   aunque creas reconocerla.
 
-8. Agrupa objetos iguales cuando sea razonable.
+10. No realices reconocimiento facial.
 
-9. Indica una cantidad aproximada de cada objeto.
+11. No infieras atributos sensibles como:
+    - religión,
+    - origen étnico,
+    - orientación sexual,
+    - condición médica,
+    - afiliación política.
 
-10. Indica la ubicación aproximada utilizando:
+12. Identifica los principales objetos visibles.
+
+13. Agrupa objetos iguales cuando sea razonable.
+
+14. Indica una cantidad aproximada de cada objeto.
+
+15. Indica la ubicación aproximada de los objetos,
+    usando términos como:
     - izquierda,
     - derecha,
     - centro,
     - parte superior,
     - parte inferior.
 
-11. Detecta texto solamente cuando sea
+16. Identifica patrones visuales relevantes como:
+    - elementos repetidos,
+    - colores predominantes,
+    - formas similares,
+    - agrupaciones,
+    - distribuciones,
+    - simetrías,
+    - estructuras visuales.
+
+17. Detecta texto únicamente cuando sea
     claramente legible.
 
-12. No inventes información que no sea visible.
+18. No inventes objetos, personas, texto o patrones.
 
-13. Si existe incertidumbre, utiliza una descripción
-    prudente.
+19. Si existe incertidumbre, utiliza lenguaje prudente.
 
-14. Responde siempre en español.
+20. Responde siempre en español.
 """
 
 
@@ -666,6 +676,21 @@ Debes realizar las siguientes tareas:
 
                         "type":
                             "string"
+
+                    },
+
+
+                    # ==========================
+                    # TOTAL PERSONAS
+                    # ==========================
+
+                    "total_personas": {
+
+                        "type":
+                            "integer",
+
+                        "minimum":
+                            0
 
                     },
 
@@ -781,7 +806,10 @@ Debes realizar las siguientes tareas:
                                 "cantidad": {
 
                                     "type":
-                                        "integer"
+                                        "integer",
+
+                                    "minimum":
+                                        1
 
                                 },
 
@@ -816,7 +844,7 @@ Debes realizar las siguientes tareas:
 
 
                     # ==========================
-                    # TEXTO VISIBLE
+                    # TEXTO
                     # ==========================
 
                     "texto_visible": {
@@ -836,9 +864,15 @@ Debes realizar las siguientes tareas:
                 },
 
 
+                # ==================================
+                # CAMPOS OBLIGATORIOS
+                # ==================================
+
                 "required": [
 
                     "descripcion",
+
+                    "total_personas",
 
                     "patrones",
 
@@ -858,7 +892,7 @@ Debes realizar las siguientes tareas:
 
 
             # ==================================
-            # PETICIÓN A RESPONSES API
+            # OPENAI
             # ==================================
 
             response = client.responses.create(
@@ -879,27 +913,16 @@ Debes realizar las siguientes tareas:
                         "content": [
 
 
-                            # ==================
-                            # TEXTO
-                            # ==================
-
                             {
-
                                 "type":
                                     "input_text",
 
                                 "text":
                                     message
-
                             },
 
 
-                            # ==================
-                            # IMAGEN
-                            # ==================
-
                             {
-
                                 "type":
                                     "input_image",
 
@@ -908,7 +931,6 @@ Debes realizar las siguientes tareas:
 
                                 "detail":
                                     "high"
-
                             }
 
                         ]
@@ -918,7 +940,7 @@ Debes realizar las siguientes tareas:
 
 
                 # ==================================
-                # RESPUESTA ESTRUCTURADA JSON
+                # JSON ESTRUCTURADO
                 # ==================================
 
                 text={
@@ -942,10 +964,6 @@ Debes realizar las siguientes tareas:
                 },
 
 
-                # ==================================
-                # RAZONAMIENTO
-                # ==================================
-
                 reasoning={
 
                     "effort":
@@ -955,7 +973,7 @@ Debes realizar las siguientes tareas:
 
 
                 max_output_tokens=
-                    1400,
+                    1600,
 
 
                 store=
@@ -965,7 +983,7 @@ Debes realizar las siguientes tareas:
 
 
             # ==================================
-            # OBTENER TEXTO DE RESPUESTA
+            # RESPUESTA
             # ==================================
 
             output_text = (
@@ -973,10 +991,6 @@ Debes realizar las siguientes tareas:
                 or ""
             ).strip()
 
-
-            # ==================================
-            # VALIDAR RESPUESTA
-            # ==================================
 
             if not output_text:
 
@@ -992,7 +1006,7 @@ Debes realizar las siguientes tareas:
 
 
             # ==================================
-            # CONVERTIR RESPUESTA A JSON
+            # CONVERTIR JSON
             # ==================================
 
             try:
@@ -1026,16 +1040,14 @@ Debes realizar las siguientes tareas:
 
 
             # ==================================
-            # RESPUESTA AL FRONTEND
+            # RESPONDER
             # ==================================
 
             self.send_json(
                 200,
                 {
-
                     "analysis":
                         analysis
-
                 }
             )
 
